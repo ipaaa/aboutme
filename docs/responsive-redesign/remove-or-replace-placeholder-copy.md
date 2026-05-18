@@ -1,9 +1,9 @@
 ---
 id: gbfggaw30eb8g28nxqqp39ax
 title: Remove or replace placeholder copy
-status: backlog
+status: ideation
 source: audit-current-site PR #1
-started:
+started: 2026-05-18T02:16:05Z
 completed:
 verdict:
 score:

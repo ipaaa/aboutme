@@ -1,9 +1,9 @@
 ---
 id: 38jttf6en1hbseqv45vpws0v
 title: Actionable contact and social links
-status: backlog
+status: ideation
 source: audit-current-site PR #1
-started:
+started: 2026-05-18T02:16:05Z
 completed:
 verdict:
 score:

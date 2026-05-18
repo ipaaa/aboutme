@@ -1,9 +1,9 @@
 ---
 id: 1t2drvakfvkdfcpyj3pwra3r
 title: Accessibility baseline pass
-status: backlog
+status: ideation
 source: audit-current-site PR #1
-started:
+started: 2026-05-18T02:16:05Z
 completed:
 verdict:
 score:

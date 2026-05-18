@@ -1,9 +1,9 @@
 ---
 id: d7zzrwcfx39j0g21drbhh7fp
 title: Replace or restore styles.css
-status: backlog
+status: ideation
 source: audit-current-site PR #1
-started:
+started: 2026-05-18T02:16:05Z
 completed:
 verdict:
 score:
