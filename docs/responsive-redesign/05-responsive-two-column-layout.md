@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-05-responsive-two-column-layout
 issue:
 pr:
-mod-block:
+mod-block: merge:pr-merge
 ---
 
 `index.html`'s 37.5 % / 62.5 % flex columns never collapse — on mobile, a 240 px-wide self-portrait sits inside a ~140 px column and forces horizontal scroll. The layout should stack to a single column below ~720 px so the portrait, contact, and bio all read top-to-bottom without sideways scrolling on phones.
