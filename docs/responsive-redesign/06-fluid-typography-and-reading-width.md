@@ -1,7 +1,7 @@
 ---
 id: t4ek60xfad8pe1tq3c6wszg9
 title: Fluid typography and reading width
-status: implementation
+status: validation
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
 completed:
