@@ -235,3 +235,37 @@ viewports. The notable decisions: use `:focus-visible` rather than `:focus` to
 avoid mouse-click outlines, set primary `lang="zh-Hant"` with per-section
 overrides deferred, and keep link color as `color: inherit` since underline-only
 already meets WCAG 1.4.1.
+
+## Stage Report: implementation
+
+- DONE: Four discrete edits to index.html per the approach: (a) `<html lang="zh-Hant">` on line 2; (b) `alt="Portrait of Ipa Chiu / 瞿筱葳"` on the portrait `<img>`; (c) wrap the existing `<article id="12f28c5c-1f02-8085-..." class="page mono">...</article>` in `<main>...</main>`; (d) add `a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }` inside the inline `<style>` block (append after #06's typography rules, before `</style>`).
+  All four landed in a single commit on `spacedock-ensign/09-accessibility-baseline-pass`; `<main>` opens at line 738 (immediately before `<article>`) and closes at line 747 (immediately after `</article>`); focus-visible rule sits at line 734 inside the inline `<style>`.
+- DONE: AC4 grep verification: `grep -n '<main' index.html` returns a `<main>` opening tag that encloses the `<article>` (and a `</main>` closing tag after it).
+  `<main>` at line 738 wraps `<article id="12f28c5c-1f02-8085-...">`; `</main>` at line 747 closes after `</article>`.
+- DONE: Static-check evidence in the stage report: paste `grep -n 'lang=' index.html | head -3`, `grep -n 'selfportrait.png' index.html`, `grep -n ':focus-visible' index.html`, `grep -n '<main' index.html`, `git diff --stat main`.
+  Evidence pasted below.
+
+### Static-check evidence
+
+```
+$ grep -n 'lang=' index.html | head -3
+2:<html lang="zh-Hant"><head>...
+
+$ grep -n 'selfportrait.png' index.html
+738:...<img style="width:240px" src="selfportrait.png" alt="Portrait of Ipa Chiu / 瞿筱葳"/>...
+
+$ grep -n ':focus-visible' index.html
+734:a:focus-visible {
+
+$ grep -n '<main' index.html
+738:</style></head><body><main><article id="12f28c5c-1f02-8085-...">...
+747:</p></div></article></main><span class="sans" ...></span></body></html>
+
+$ git diff --stat main
+ index.html | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+```
+
+### Summary
+
+Landed the four accessibility-baseline edits on `index.html`: `<html lang="zh-Hant">`, descriptive `alt` on the portrait, `<main>` wrapping the existing `<article>`, and an `a:focus-visible` outline rule appended inside the inline `<style>` block after #06's typography rules. Total diff is 7 insertions / 3 deletions in one file; no layout changes, no markup beyond the spec. Browser-behavior validation (Tab focus, screen reader landmark menu, Lighthouse) is the next stage's job.
