@@ -1,7 +1,7 @@
 ---
 id: 4wpgzrfwsb3vwqv8ezjt7faf
 title: Responsive two-column layout
-status: implementation
+status: validation
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
 completed:
