@@ -1,16 +1,17 @@
 ---
 id: wwceqcpb678xe6fspeqgrx1y
 title: Add viewport meta and doctype
-status: validation
+status: done
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
-completed:
-verdict:
+completed: 2026-05-18T15:44:55Z
+verdict: PASSED
 score:
-worktree: .worktrees/spacedock-ensign-02-add-viewport-meta-and-doctype
+worktree: 
 issue:
 pr: #2
 mod-block: 
+archived: 2026-05-18T15:44:57Z
 ---
 
 `index1.html` has no `<meta name="viewport">` and no `<!DOCTYPE>`, so phones render it at the ~980 px layout viewport and downscale to illegible text. Every page should opt into the mobile layout viewport so text is readable without pinch-zoom from 320 px upward.
