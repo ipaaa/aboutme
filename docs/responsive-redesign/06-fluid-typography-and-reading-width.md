@@ -478,3 +478,12 @@ Concrete next-step options for cycle 2 (one must be picked; validator does not p
   (d) **Collapse the column at all widths** (effectively cancelling Notion's two-column layout). This is #05's territory and is currently scoped to mobile only (≤720 px) per #05's AC.
 
 Recommended path: option (c) — open a captain conversation about widening the body cap (e.g., bump `--body-cap` ceiling from `70ch` to `110ch`, so right col = 0.625 × 110 ch − 1em ≈ 68 ch). This satisfies AC2 without touching column structure or stepping on #05. The other AC1/AC3/AC4/AC5/AC6/AC7/AC8/AC9/AC10 results are stable across cycle 0 and cycle 1; only AC2 needs a different intervention.
+
+## Stage Report: implementation (cycle 2)
+
+- DONE: Change --body-cap ceiling from 70ch to 110ch; delete .column-list .column p { max-width: 70ch } rule.
+  Two edits in the task-06 block in `index.html`: line 692 `--body-cap` ceiling changed from `70ch` to `110ch` (preferred + floor terms unchanged: `clamp(20rem, 90vw, 110ch)`); the 5-line cycle-1 block (`/* AC2 fix — line-length cap on bio paragraphs inside the column structure */` comment plus `.column-list .column p { max-width: 70ch }` rule, previously at lines 710-713) deleted in full. Post-edit `grep -nE '\.column-list \.column p|70ch' index.html` returns nothing inside the task-06 block; `grep -n '110ch' index.html` returns the single new match at line 692. Diff stat versus pre-cycle: `index.html | 7 +------ | 1 insertion(+), 6 deletions(-)`. Committed as 4381aa1.
+
+### Summary
+
+Applied captain-selected option (c) cleanly in one commit: widened `--body-cap` ceiling from 70ch to 110ch and deleted the cycle-1 no-op paragraph rule. The widened body cap means the right `.column` (62.5% of body) lands at ~68ch at wide viewports, inside AC2's 60-75ch band, while the floor and middle terms of the clamp (`20rem`, `90vw`) are untouched so narrow-viewport behavior is unchanged. The task-06 block is back to its cycle-0 shape minus a relaxed ceiling — no new selectors introduced, none of #05's selectors touched, and the additive-shadow strategy versus the pre-existing `max-width: 900px` is preserved.
