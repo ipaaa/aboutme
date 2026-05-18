@@ -394,6 +394,39 @@ This makes each `.column-list .column p` cap at 70 ch at its own computed font-s
 
 **Do NOT** change the body-level cap, the column widths, or any selector that #05 owns. The fix is one new rule with one declaration.
 
+### Cycle 2 — cycle 1 fix was a no-op, captain picked option (c)
+
+**Cycle 1 outcome:** REJECTED again. The cycle-1 rule `.column-list .column p { max-width: 70ch }` constrains paragraphs from above only, but they're already ~35 ch wide due to the parent column's `width:62.5%`. The 70ch cap never engages. Validator math at lines 410–417 of the cycle-1 validation report.
+
+**Captain's decision:** Option (c) — widen the body cap ceiling from `70ch` to `110ch`. With the wider cap, right column ≈ 110ch × 0.625 ≈ 68 ch (per column padding subtracts ~1ch), comfortably inside the AC2 60–75 ch band.
+
+**Concrete fix routed to implementer:**
+
+Two changes inside the existing task-06 block in `index.html`:
+
+1. Change the `--body-cap` token value:
+   ```css
+   /* before */
+   --body-cap: clamp(20rem, 90vw, 70ch);
+
+   /* after */
+   --body-cap: clamp(20rem, 90vw, 110ch);
+   ```
+
+2. Delete the cycle-1 rule (it's a no-op now and clutters the diff):
+   ```css
+   /* delete */
+   .column-list .column p {
+       max-width: 70ch;
+   }
+   ```
+
+After the change: body container caps at ~110ch (~1056 px at 18 px monospace) on wide desktops instead of ~630 px. The bilingual bio paragraphs inside the right column now reach the comfortable reading band at all named viewports.
+
+**Verification:** re-run AC2 math at vw=640/768/1024/1280/1440 px. Expected: 64–68 ch effective paragraph width at the wider viewports. Confirm AC3 (body cap responds to viewport — now caps at the wider 110ch rather than 70ch) still passes with the new math.
+
+Captain explicitly approved the trade-off: page body on a large desktop becomes wider than the original 70ch design but the bilingual paragraphs become readable — closer to the Notion bio's original `max-width: 900px` feel, but now responsively scaling.
+
 ## Stage Report: implementation (cycle 1)
 
 - DONE: Add `.column-list .column p { max-width: 70ch }` inside the task-06 block, between the existing heading rules and the `</style>` closing tag.
