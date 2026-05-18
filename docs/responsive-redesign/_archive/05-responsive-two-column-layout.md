@@ -1,16 +1,17 @@
 ---
 id: 4wpgzrfwsb3vwqv8ezjt7faf
 title: Responsive two-column layout
-status: validation
+status: done
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
-completed:
-verdict:
+completed: 2026-05-18T17:13:48Z
+verdict: PASSED
 score:
-worktree: .worktrees/spacedock-ensign-05-responsive-two-column-layout
+worktree: 
 issue:
 pr: #5
 mod-block: 
+archived: 2026-05-18T17:13:48Z
 ---
 
 `index.html`'s 37.5 % / 62.5 % flex columns never collapse — on mobile, a 240 px-wide self-portrait sits inside a ~140 px column and forces horizontal scroll. The layout should stack to a single column below ~720 px so the portrait, contact, and bio all read top-to-bottom without sideways scrolling on phones.
