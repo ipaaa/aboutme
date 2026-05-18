@@ -1,13 +1,13 @@
 ---
 id: dbgp3nd86eqzt8j7b3gw4ppf
 title: Open Graph and Twitter Card meta tags
-status: ideation
+status: implementation
 source: FO upgrade suggestion
 started: 2026-05-18T17:55:21Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-13-open-graph-and-twitter-cards
 issue:
 pr:
 mod-block:
