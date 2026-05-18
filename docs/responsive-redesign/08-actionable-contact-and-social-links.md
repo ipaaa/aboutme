@@ -172,3 +172,16 @@ The implementation-stage agent performs the edits in a worktree. The validation-
 ### Summary
 
 Fleshed out the actionable-contact-and-social-links task from the seed paragraph into a complete mechanical-edit spec. Verified the live source enumeration against `index.html` and `index1.html`: three `[at]` contact strings (one gmail in `index.html`, plus gmail+proton in `index1.html`) and seven `http://` hrefs across both files (one Twitter in `index.html`; four social + two `g0v.tw` inline in `index1.html`). Eight ACs each name a specific file + line region with current and target forms, backed by Proposed-approach end-state tables. Test plan combines grep-based contract guards (anchored to avoid the embedded SVG XML namespace) with desktop and mobile click-behavior checks. Out-of-scope explicitly delegates surrounding work to `mobile-friendly-navigation-and-footer`, `accessibility-baseline-pass`, and `strip-notion-export-boilerplate`.
+
+## Stage Report: implementation
+
+- DONE: All three `[at]` contact occurrences converted to `<a href="mailto:ipawei@{domain}">ipawei@{domain}</a>` per the end-state table in the entity body (one in index.html footer; two in index1.html line 684 area). Display text uses real `@`, not `[at]`.
+  index.html:26 gmail mailto added; index1.html:684 gmail + proton mailto anchors inside the preserved `<mark class="highlight-gray">` wrapper with the two `<br/>` separators intact. `grep -nF '[at]'` → exit 1 (0 matches).
+- DONE: All seven `http://` anchor hrefs upgraded to `https://` per the end-state table (one Twitter in index.html; four socials + two `g0v.tw` inline in index1.html). XML namespace `http://www.w3.org/2000/svg` on index1.html line 681 left untouched.
+  index.html Twitter; index1.html FACEBOOK, MEDIUM, MASTODON, TWITTER, and both inline `g0v.tw` anchors (Co-Founder line + Building Community line) all on https. SVG `xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22` preserved in the encoded data URL.
+- DONE: Grep regression guards both pass and the diff scope is bounded: `grep -nF '[at]' index.html index1.html` returns no matches, `grep -nF 'href="http://' index.html index1.html` returns no matches, and `git diff --stat main` shows only index.html and index1.html modified — no CSS, no structure, no whitespace reflow.
+  Both grep contracts exit 1 with 0 matches. `git diff --stat main`: `index.html | 4 ++--`, `index1.html | 8 ++++----`, 2 files changed (6 insertions, 6 deletions). `git diff main -- ':!index.html' ':!index1.html'` is empty.
+
+### Summary
+
+Mechanical text-edit pass over `index.html` and `index1.html` on branch `spacedock-ensign/08-actionable-contact-and-social-links`. Converted three `[at]` plaintext contact strings to `mailto:` anchors with the real `@`-form display text, and upgraded seven outbound social/g0v hrefs from `http://` to `https://`. Wrapping markup (`<p>`, `<mark class="highlight-gray">`, `<br/>` separators) preserved exactly; SVG XML namespace on line 681 untouched. All grep contracts pass and diff scope is bounded to the two HTML files only.
