@@ -393,3 +393,12 @@ This makes each `.column-list .column p` cap at 70 ch at its own computed font-s
 **Verification after fix:** re-run AC2's inline JS probe (entity body lines 152–166) at 640/768/1024/1280/1440 px viewports — expect `lineLengthCh ∈ [60, 75]` at the widest viewports (1024+) and approaching 60 ch from below at 640–768 px. Re-run other ACs only if you suspect regression (you shouldn't — the change is additive).
 
 **Do NOT** change the body-level cap, the column widths, or any selector that #05 owns. The fix is one new rule with one declaration.
+
+## Stage Report: implementation (cycle 1)
+
+- DONE: Add `.column-list .column p { max-width: 70ch }` inside the task-06 block, between the existing heading rules and the `</style>` closing tag.
+  Inserted the rule at `index.html:710-713`, immediately after the four per-heading `font-size` declarations (lines 705-708) and one blank line before `</style>` at line 716. The rule reads `.column-list .column p { max-width: 70ch; }` and is preceded by a `/* AC2 fix — line-length cap on bio paragraphs inside the column structure */` comment so the cycle-1 addition is greppable. Committed as 28e81af; `grep -nE '\.column-list \.column p' index.html` returns the single new match at line 711, and `git diff main -- index.html` shows the task-06 block grew from 27 → 32 net-added lines, with no other file changes.
+
+### Summary
+
+Applied the validator's prescribed one-rule fix on the same worktree branch (commit 28e81af). The new `.column-list .column p { max-width: 70ch }` rule targets AC2's selector directly so it shrinks the per-paragraph line length from the validator-measured ~35 ch (governed by the parent column's 62.5 % width) down to ≤ 70 ch wherever the column would otherwise yield a wider measurement, and at narrower viewports it is a no-op because the parent column is already narrower than 70 ch. The change is additive, lives inside the existing task-06 block between the heading rules and `</style>`, touches no selector `#05` owns, and leaves AC1/AC3-AC10 evidence from the cycle-0 report intact.
