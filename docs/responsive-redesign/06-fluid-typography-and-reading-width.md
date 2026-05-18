@@ -402,3 +402,46 @@ This makes each `.column-list .column p` cap at 70 ch at its own computed font-s
 ### Summary
 
 Applied the validator's prescribed one-rule fix on the same worktree branch (commit 28e81af). The new `.column-list .column p { max-width: 70ch }` rule targets AC2's selector directly so it shrinks the per-paragraph line length from the validator-measured ~35 ch (governed by the parent column's 62.5 % width) down to ≤ 70 ch wherever the column would otherwise yield a wider measurement, and at narrower viewports it is a no-op because the parent column is already narrower than 70 ch. The change is additive, lives inside the existing task-06 block between the heading rules and `</style>`, touches no selector `#05` owns, and leaves AC1/AC3-AC10 evidence from the cycle-0 report intact.
+
+## Stage Report: validation (cycle 1)
+
+Re-validation at worktree HEAD 18dc31c (after implementer commit 28e81af). Same sandbox limitation as cycle 0: no browser binary accessible (`/Applications/*.app` returns `Operation not permitted`); checks via clamp() arithmetic, paragraph-width math, and selector grep.
+
+- FAIL: AC2 — Per-paragraph line length 60–75 ch at vw=640/768/1024/1280/1440.
+  The new rule `.column-list .column p { max-width: 70ch }` only constrains from above. CSS `max-width` on a block-level element shrinks the element if its natural width would exceed the cap, but does NOT widen the element beyond its containing block's content width. The `<p>` lives inside `.column` whose width is fixed by Notion's inline `style="width:62.499...%"` (and the left column at `style="width:37.5%"`); the right column's content width is `body × 0.625 − 1em padding`. Recomputed paragraph widths at HEAD 18dc31c (monospace ch ≈ 0.6 × font-size for `body.mono` page):
+    - vw=640: bodyCap=576, rightColW=360, natP=343, 70chCap=726 → effP = min(343, 726) = `343 px` → ~`33 ch`
+    - vw=768: bodyCap=623, rightColW=389, natP=371, 70chCap=747 → effP = `371 px` → ~`35 ch`
+    - vw=1024: bodyCap=630, rightColW=394, natP=376, 70chCap=756 → effP = `376 px` → ~`35 ch`
+    - vw=1280: bodyCap=630, rightColW=394, natP=376, 70chCap=756 → effP = `376 px` → ~`35 ch`
+    - vw=1440: bodyCap=630, rightColW=394, natP=376, 70chCap=756 → effP = `376 px` → ~`35 ch`
+  Same ~33–35 ch numbers as cycle 0. The 70ch cap is ~756 px (monospace) or ~630 px (sans) — both far above the natural ~376 px — so the new `max-width` rule never engages. The implementer stage report at lines 392-393 asserted that "at viewports where the column is wider than 70 ch (large desktop), the new cap kicks in and holds line length at 70 ch", but the column is ~35 ch wide, never 70+; the cap therefore never kicks in at any tested viewport. Same finding applies to AC2's `querySelector(...)` first match (the LEFT column's `<p>` at 37.5%): even narrower ~22–24 ch. AC2 FAILS again.
+- PASS: AC1 (regression) — unchanged. The cycle-1 commit added only `.column-list .column p { max-width: 70ch }` (`index.html:711-713`); no font-size token touched. clamp() values at vw=320/768/1440 unchanged from cycle 0 (16.00 / 17.79 / 18.00 px).
+- PASS: AC3 (regression) — unchanged. Body-level `max-width: var(--body-cap)` rule at line 700-702 untouched; body widths at vw=320/640/1440 still 320/576/630 px.
+- PASS: AC4 (regression) — unchanged. Heading token rules at lines 705-708 untouched; hierarchy strictly descending at vw=375/768/1280.
+- PASS: AC5 (regression) — unchanged. The new rule reduces (or holds) paragraph widths; it cannot introduce horizontal overflow. No change in body cap math.
+- PASS: AC6 (regression) — unchanged. The new rule uses `ch` (a relative unit that scales with font-size and therefore with user zoom / user font-size preference); no px literal introduced.
+- PASS: AC7 (regression) — the new rule is unscoped and active in print, but `max-width: 70ch` on a paragraph in print is benign (paragraphs in print are typically narrower than 70 ch anyway given `@page { margin: 1in }`).
+- PASS: AC8 — markup preserved. `grep -c 'style="width:37.5%"' index.html` → `1`.
+- PASS: AC9 — no external stylesheet. `git diff main -- styles.css` → empty (exit 0). `grep -c 'rel="stylesheet"' index.html` → 0.
+- PASS: AC10 — disjoint from #05. `grep -nE '^\s*\.column' index.html` → 5 matches: lines 133, 138, 142, 146 (Notion-export rules) + line 711 (the cycle-1 new `.column-list .column p` rule). The new match IS the paragraph-typography rule the cycle-1 instructions allow; #05 owns `.column-list` / `.column` selectors (no `p` descendant), so the selector territories remain disjoint.
+
+### Completion checklist (cycle 1)
+
+- FAILED: AC2 (the previously failing one) MUST PASS now.
+  AC2 still fails at all five named viewports (~33–35 ch achieved vs 60-ch floor). The cycle-1 fix used `max-width` which constrains from above only and never engages because the parent column (~35 ch wide) is always narrower than the 70 ch cap. Root cause is the parent `.column { width: 62.5% }` Notion inline style, not a missing paragraph cap.
+- DONE: Regression check on AC1, AC3, AC4, AC5, AC6, AC7. Confirmed none of these were affected by the new rule.
+  All six unchanged — the cycle-1 commit only added the paragraph `max-width` rule and did not touch any font-size, body-cap, heading, scroll-related, zoom-related, or media-query rule from cycle 0.
+- DONE: AC8, AC9, AC10 still hold.
+  AC8 grep returns 1; AC9 styles.css diff empty; AC10 grep returns 5 matches with the new 5th match being the cycle-1 paragraph rule at line 711 (allowed by re-validation instructions).
+
+### Summary
+
+Re-validation REJECTS to implementation a second time. The cycle-1 fix is a no-op: `max-width: 70ch` on `.column-list .column p` only constrains paragraphs from above, but the paragraphs are already constrained to ~35 ch (~376 px) by the parent `.column`'s Notion-inline `width:62.5%` and `.column { padding: 0 1em }`. The 70ch cap (~630–756 px depending on font metrics) is never reached, so the rule never engages. The implementer's stage-report claim that the cap "kicks in at large desktop" is mathematically incorrect — the column is ~35 ch wide at every tested viewport from 640 px through 1440 px, never 70 ch wide.
+
+Concrete next-step options for cycle 2 (one must be picked; validator does not produce the deliverable):
+  (a) **Make the bio paragraphs ignore the column structure.** Add a rule like `.column-list .column p { width: 100%; max-width: 70ch; margin-left: auto; margin-right: auto; }` — but the parent column is still 62.5%, so `width: 100%` resolves to 62.5% of body. Still doesn't work.
+  (b) **Override the column widths at wide viewports** so the right column expands to fit a 70 ch paragraph. Example: `@media (min-width: 720px) { .column-list .column[style*="62.4999"] { width: auto !important; flex: 1; } }` — but this overrides Notion's inline `width:62.5%` and touches a `.column-list .column` selector that #05 owns. Coordination required with #05 (or a renegotiated AC10 boundary).
+  (c) **Re-scope AC2.** The 60–75 ch target is geometrically impossible to satisfy at any viewport while the right column is 62.5 % of a 70 ch body cap (62.5 % × 70 ch − padding ≈ 43 ch maximum). Either the body cap must grow (e.g., `90ch` ceiling) OR the column structure must change OR the AC must accept a narrower band on desktop with two-column layout.
+  (d) **Collapse the column at all widths** (effectively cancelling Notion's two-column layout). This is #05's territory and is currently scoped to mobile only (≤720 px) per #05's AC.
+
+Recommended path: option (c) — open a captain conversation about widening the body cap (e.g., bump `--body-cap` ceiling from `70ch` to `110ch`, so right col = 0.625 × 110 ch − 1em ≈ 68 ch). This satisfies AC2 without touching column structure or stepping on #05. The other AC1/AC3/AC4/AC5/AC6/AC7/AC8/AC9/AC10 results are stable across cycle 0 and cycle 1; only AC2 needs a different intervention.
