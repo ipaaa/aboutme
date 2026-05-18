@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-07-mobile-friendly-navigation-and-footer
 issue:
 pr:
-mod-block:
+mod-block: merge:pr-merge
 ---
 
 ## Problem

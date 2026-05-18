@@ -9,7 +9,7 @@ verdict:
 score:
 worktree: .worktrees/spacedock-ensign-10-strip-notion-export-boilerplate
 issue:
-pr:
+pr: #8
 mod-block: merge:pr-merge
 ---
 
