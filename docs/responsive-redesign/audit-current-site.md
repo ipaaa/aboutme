@@ -9,7 +9,7 @@ verdict:
 score:
 worktree: .worktrees/spacedock-ensign-audit-current-site
 issue:
-pr:
+pr: #1
 mod-block: merge:pr-merge
 ---
 
