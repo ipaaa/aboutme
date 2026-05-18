@@ -137,3 +137,22 @@ Derived from `ls docs/responsive-redesign/*.md` minus `README.md` and `01-decide
 ### Summary
 
 Recorded the captain's selection of Option B (rebuild fresh `index.html` from scratch, delete both originals) and wrote a sibling-by-sibling impact map grounded in the current `ls docs/responsive-redesign/*.md` output. Eight tasks (02–09) are scope-changed with one-line new-scope notes that reorient each from "patch legacy files" to "design into the rebuild"; two tasks (10 strip-notion-export-boilerplate, 11 remove-or-replace-placeholder-copy) are obsolete because Option B deletes both source files outright. No site files were touched — `git diff main` against `index.html`, `index1.html`, `*.css`, and `*.js` is empty.
+
+## Stage Report: validation
+
+- DONE: AC-1 — The entity body names exactly one chosen option (A, B, or C) as the captain's decision.
+  PASS. `## Decision` section (line 109–111) contains the single sentence "Captain selected Option B: rebuild a fresh index.html from scratch using index1.html as source material; delete both originals." — one option letter, no hedge.
+- DONE: AC-2 — The entity body contains a downstream-impact map covering every sibling backlog task under `docs/responsive-redesign/`.
+  PASS. `ls docs/responsive-redesign/*.md` returned 12 files; subtracting `README.md` and `01-decide-canonical-page.md` leaves 10 siblings (02–11). Every one appears in `## Impact map` with a classification: 02–09 scope-changed, 10–11 obsolete. No silent omissions.
+- DONE: AC-3 — The impact map references real sibling entities by their actual filenames.
+  PASS. `ls docs/responsive-redesign/{slug}.md` returned a hit for all 10 cited slugs (02-add-viewport-meta-and-doctype through 11-remove-or-replace-placeholder-copy). No invented or missing names.
+- DONE: AC-4 — The decision and impact map are the only outputs; no site files are modified.
+  PASS. `git diff main -- index.html index1.html '*.css' '*.js'` returned empty in the worktree. `git diff --stat main` showed only `docs/responsive-redesign/01-decide-canonical-page.md` changed (+33/-1) prior to this validation report append.
+- DONE: AC-2 independently re-derived against live `ls docs/responsive-redesign/*.md`; no silent omissions.
+  Re-ran `ls` in this validation session; sibling set 02–11 matches the impact-map entries one-for-one.
+- DONE: AC-3 spot-check: for at least three impact-map entries, read the cited sibling task file and confirm classification consistent with seed/ideation content.
+  Verified three: (1) `10-strip-notion-export-boilerplate` marked **obsolete** — seed targets stripping ~680 lines of Notion CSS from `index1.html`; Option B deletes `index1.html` and does not import the Notion `<style>` block, so no remaining target. Consistent. (2) `11-remove-or-replace-placeholder-copy` marked **obsolete** — seed literally states "Effectively obsolete if `decide-canonical-page` chooses to drop `index.html`"; Option B drops `index.html`. Consistent. (3) `02-add-viewport-meta-and-doctype` marked **scope-changed** — seed describes patching `index1.html` line 1 (doctype) and `<head>` (viewport meta); under Option B those edits are discarded when `index1.html` is deleted, but the underlying requirement (doctype + viewport in first commit of the rebuilt `index.html`) carries forward. Consistent.
+
+### Summary
+
+All four ACs PASS. AC-1 satisfied by the single-sentence Option B decision; AC-2 satisfied by an impact-map enumeration that one-for-one matches a live `ls docs/responsive-redesign/*.md` minus README and self; AC-3 satisfied — all 10 cited slugs resolve on disk; AC-4 satisfied — no site-file diff against main. Plausibility spot-check on three entries (10 obsolete, 11 obsolete, 02 scope-changed) confirms the classifications are consistent with each sibling's seed/ideation content; the "11 effectively obsolete if `decide-canonical-page` drops `index.html`" seed wording is especially load-bearing evidence that Option B's obsolete verdict on 11 is correct. Recommend gate-approval to `done`.
