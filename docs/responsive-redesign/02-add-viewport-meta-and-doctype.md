@@ -1,13 +1,13 @@
 ---
 id: wwceqcpb678xe6fspeqgrx1y
 title: Add viewport meta and doctype
-status: ideation
+status: implementation
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-02-add-viewport-meta-and-doctype
 issue:
 pr:
 mod-block:

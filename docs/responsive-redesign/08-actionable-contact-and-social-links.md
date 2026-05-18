@@ -1,13 +1,13 @@
 ---
 id: 38jttf6en1hbseqv45vpws0v
 title: Actionable contact and social links
-status: ideation
+status: implementation
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-08-actionable-contact-and-social-links
 issue:
 pr:
 mod-block:
