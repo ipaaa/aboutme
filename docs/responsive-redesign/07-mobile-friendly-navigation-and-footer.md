@@ -184,3 +184,33 @@ Verified by: at 375 px and at 1280 px, evaluate `Array.from(document.querySelect
 ### Summary
 
 Reframed the task to the post-bridge reality: the canonical `index.html` is the Notion-exported bio with no `<nav>` or `<footer>` element, and the social/contact rows live inside the left `.column`. Proposed a CSS-only approach (no HTML edits, re-export-safe) that targets the two paragraphs by their stable Notion ids, gives each anchor a 44 × 44 CSS px hit area below the existing 720 px breakpoint shared with #05, hides the literal " | " mark separators on narrow viewports, and restores the original inline density above 720 px. Carved scope cleanly against #09 (landmarks, `lang`, `alt`, focus), #03 (`styles.css`), and #10 (Notion boilerplate).
+
+## Stage Report: implementation
+
+- DONE: Append the touch-target CSS block to the inline `<style>` in index.html (just before `</style>`, after #06's task block), per the approach: base rules for `p#12f28c5c-1f02-8140-9b88-e9ad4e63258a a` and `p#12f28c5c-1f02-809f-a021-c2c9bcc88266 a` giving 44×44 min hit + padding + underline + breathing margin; hide separators with `:has()` on the social paragraph; stack social marks as `display: block` at narrow viewports; restore inline density inside `@media (min-width: 720px)`.
+  Commit 14704b1; new block lives at index.html:734–770, immediately after #06's block, just before the inline `</style>` on line 772.
+- DONE: AC8 + scope check: `grep -nE '^\s*\.column' index.html` should return the same 4 pre-existing matches (lines 133/138/142/146) plus #05's block — no new `.column-list` or `.column` selectors added in #07's block.
+  Grep returned the 4 pre-existing matches (133/138/142/146) plus #05's six selectors at lines 686/690/696/699/702/705/706 — no new `.column` selectors in the appended block; rules target paragraphs by id only.
+- DONE: Static-check evidence in the stage report: paste `grep -n 'Touch-target ergonomics — task 07' index.html`, `grep -n ':has' index.html`, `git diff --stat main` (expect only index.html modified).
+  Evidence below.
+
+### Static-check evidence
+
+```
+$ grep -n 'Touch-target ergonomics — task 07' index.html
+734:/* Touch-target ergonomics — task 07 */
+
+$ grep -n ':has' index.html
+748:p#12f28c5c-1f02-809f-a021-c2c9bcc88266 > mark.highlight-gray:not(:has(a)) {
+752:p#12f28c5c-1f02-809f-a021-c2c9bcc88266 > mark.highlight-gray:has(a) {
+757:	p#12f28c5c-1f02-809f-a021-c2c9bcc88266 > mark.highlight-gray:not(:has(a)) {
+760:	p#12f28c5c-1f02-809f-a021-c2c9bcc88266 > mark.highlight-gray:has(a) {
+
+$ git diff --stat main
+ index.html | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+```
+
+### Summary
+
+CSS-only implementation per the ideation plan: appended a 38-line `/* Touch-target ergonomics — task 07 */` block to the inline `<style>` in `index.html`, just before `</style>` and after #06's fluid-typography block. Targets contact and social anchors by their two stable Notion paragraph ids — no `.column`/`.column-list` selectors added — uses `:has()` to hide the four `<mark> | </mark>` separators below 720 px and stacks the anchor-bearing marks as blocks, then restores inline density inside `@media (min-width: 720px)`. Disjoint from #09's `:focus-visible`/`<main>` work and from #10's eventual boilerplate strip.
