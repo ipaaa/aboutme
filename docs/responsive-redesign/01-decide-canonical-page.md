@@ -9,7 +9,7 @@ verdict:
 score:
 worktree: .worktrees/spacedock-ensign-01-decide-canonical-page
 issue:
-pr:
+pr: #4
 mod-block: merge:pr-merge
 ---
 
