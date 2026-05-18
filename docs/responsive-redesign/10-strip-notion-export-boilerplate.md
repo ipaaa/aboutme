@@ -1,7 +1,7 @@
 ---
 id: gcvedf28xajs7rbwpbwx1bcb
 title: Strip Notion-export boilerplate
-status: implementation
+status: validation
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
 completed:
