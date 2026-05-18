@@ -1,13 +1,13 @@
 ---
 id: 2ye4302ar55nkp3v8ay6gb6w
 title: Decide canonical page
-status: ideation
+status: implementation
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-01-decide-canonical-page
 issue:
 pr:
 mod-block:
