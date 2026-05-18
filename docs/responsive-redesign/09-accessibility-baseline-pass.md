@@ -235,3 +235,57 @@ viewports. The notable decisions: use `:focus-visible` rather than `:focus` to
 avoid mouse-click outlines, set primary `lang="zh-Hant"` with per-section
 overrides deferred, and keep link color as `color: inherit` since underline-only
 already meets WCAG 1.4.1.
+
+## Stage Report: implementation
+
+- DONE: Four discrete edits to index.html per the approach: (a) `<html lang="zh-Hant">` on line 2; (b) `alt="Portrait of Ipa Chiu / 瞿筱葳"` on the portrait `<img>`; (c) wrap the existing `<article id="12f28c5c-1f02-8085-..." class="page mono">...</article>` in `<main>...</main>`; (d) add `a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }` inside the inline `<style>` block (append after #06's typography rules, before `</style>`).
+  All four landed in a single commit on `spacedock-ensign/09-accessibility-baseline-pass`; `<main>` opens at line 738 (immediately before `<article>`) and closes at line 747 (immediately after `</article>`); focus-visible rule sits at line 734 inside the inline `<style>`.
+- DONE: AC4 grep verification: `grep -n '<main' index.html` returns a `<main>` opening tag that encloses the `<article>` (and a `</main>` closing tag after it).
+  `<main>` at line 738 wraps `<article id="12f28c5c-1f02-8085-...">`; `</main>` at line 747 closes after `</article>`.
+- DONE: Static-check evidence in the stage report: paste `grep -n 'lang=' index.html | head -3`, `grep -n 'selfportrait.png' index.html`, `grep -n ':focus-visible' index.html`, `grep -n '<main' index.html`, `git diff --stat main`.
+  Evidence pasted below.
+
+### Static-check evidence
+
+```
+$ grep -n 'lang=' index.html | head -3
+2:<html lang="zh-Hant"><head>...
+
+$ grep -n 'selfportrait.png' index.html
+738:...<img style="width:240px" src="selfportrait.png" alt="Portrait of Ipa Chiu / 瞿筱葳"/>...
+
+$ grep -n ':focus-visible' index.html
+734:a:focus-visible {
+
+$ grep -n '<main' index.html
+738:</style></head><body><main><article id="12f28c5c-1f02-8085-...">...
+747:</p></div></article></main><span class="sans" ...></span></body></html>
+
+$ git diff --stat main
+ index.html | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+```
+
+### Summary
+
+Landed the four accessibility-baseline edits on `index.html`: `<html lang="zh-Hant">`, descriptive `alt` on the portrait, `<main>` wrapping the existing `<article>`, and an `a:focus-visible` outline rule appended inside the inline `<style>` block after #06's typography rules. Total diff is 7 insertions / 3 deletions in one file; no layout changes, no markup beyond the spec. Browser-behavior validation (Tab focus, screen reader landmark menu, Lighthouse) is the next stage's job.
+
+## Stage Report: validation
+
+- DONE: Each of AC-1 through AC-4 reproduced against worktree HEAD with PASS/FAIL and concrete evidence.
+  HEAD = 850a51b on `spacedock-ensign/09-accessibility-baseline-pass`, working tree clean; all four ACs PASS — see per-AC evidence below.
+- DONE: AC-3 explicitly verified — `grep -n ':focus-visible' index.html` returns the new rule; if a browser is available, tab through anchors and confirm visible outlines. Without a browser, name the spec-precondition proxy.
+  Grep returns `734:a:focus-visible {` (rule body at lines 734-737); no browser available in this validation environment, so passing via spec proxy: (a) the `a:focus-visible` selector exists with specificity (0,1,1) over `a, a.visited` (0,1,0) at lines 31-32, so the outline declaration wins on the focused anchor; (b) no `outline: none` / `outline: 0` rule exists anywhere in `index.html` (grep for `outline` returns only the two lines inside this rule), so the declaration is not suppressed; (c) per CSS Selectors L4, `:focus-visible` is the canonical UA signal for keyboard-derived focus — matching it produces the 2px `currentColor` outline with 2px offset on every keyboard-tabbed anchor at every viewport (viewport-independent CSS).
+- DONE: AC-4 wrapper verification: confirm `<main>` opens BEFORE `<article>` and `</main>` closes AFTER `</article>` (paste the line numbers). Empty `<main>` or `<main>` after `<article>` should FAIL.
+  Line 738: `<main>` at column 22, `<article id="12f28c5c-1f02-8085-..." class="page mono">` at column 28 — `<main>` opens BEFORE `<article>` (delta = 6 chars). Line 747: `</article>` at column 11, `</main>` at column 21 — `</main>` closes AFTER `</article>` (delta = 10 chars). Wrapper is non-empty and correctly ordered.
+
+### Per-AC evidence
+
+- **AC-1 (lang) — PASS.** `grep -n '^<html' index.html` → `2:<html lang="zh-Hant"><head>...` — line 2 declares the document language as Traditional Chinese, matching the AC's required value.
+- **AC-2 (alt) — PASS.** `grep -n 'selfportrait.png' index.html` → match at line 738; tokens extracted: `src="selfportrait.png"` and `alt="Portrait of Ipa Chiu / 瞿筱葳"`. Alt is present, non-empty, descriptive, and bilingual (mirrors the page's zh/en convention).
+- **AC-3 (focus) — PASS via spec proxy.** Rule present at lines 734-737: `a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }`. Selector specificity beats the only competing anchor rule (`a, a.visited` at lines 31-32, color/text-decoration only — no outline). No `outline: 0` or `outline: none` suppression anywhere in the file. Viewport-independent CSS; the 375/768/1280 viewport sweep named in the AC's `Verified by:` clause cannot regress this since no media queries gate the rule. Browser-based Tab walkthrough not executed (no browser in validator environment) — flagged here, not blocking.
+- **AC-4 (main) — PASS.** `grep -n '<main' index.html` returns line 738 (opening `<main>` at column 22, immediately before `<article>` at column 28) and line 747 (closing `</main>` at column 21, immediately after `</article>` at column 11). Wrapper is structurally correct and non-empty.
+
+### Summary
+
+All four ACs PASS at HEAD 850a51b. AC-1, AC-2, AC-4 confirmed by direct grep + structural inspection of `index.html`. AC-3 confirmed by spec proxy (rule exists, selector specificity wins, no `outline: none` suppression, no media-query gating); browser-based Tab walkthrough at 375/768/1280 px was not executable in this validator environment but the underlying CSS preconditions are unambiguous. Gate: approved to `done`.
