@@ -1,16 +1,17 @@
 ---
 id: 48y4dtz950dsdx5kfv3kn7vx
 title: Fix broken self-portrait image
-status: ideation
+status: done
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
-completed:
-verdict:
+completed: 2026-05-18T17:18:42Z
+verdict: REJECTED
 score:
 worktree:
 issue:
 pr:
 mod-block:
+archived: 2026-05-18T17:18:45Z
 ---
 
 `index1.html` references `Ipa%20CHIU%2012f28c5c1f028085a0d1f7b68000f817/selfportrait.png` (the Notion-export asset directory), but that directory is not in the repo — the portrait renders as a broken-image icon. The redesign should include the asset (with descriptive `alt` text and a sensible repo path) so the about page actually shows the person it is about.
