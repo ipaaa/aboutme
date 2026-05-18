@@ -9,7 +9,7 @@ verdict:
 score:
 worktree: .worktrees/spacedock-ensign-05-responsive-two-column-layout
 issue:
-pr:
+pr: #5
 mod-block: merge:pr-merge
 ---
 

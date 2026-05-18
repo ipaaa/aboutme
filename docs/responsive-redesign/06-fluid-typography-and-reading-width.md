@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-06-fluid-typography-and-reading-width
 issue:
 pr:
-mod-block:
+mod-block: merge:pr-merge
 ---
 
 The canonical `index.html` (the Notion-exported bio brought in by bridge merge `a4fdfc0`) caps the body at a fixed `max-width: 900px` with no fluid scaling of font-size, and renders body paragraphs inside a `.column` whose width is governed by Notion's inline `style="width:62.499999999999986%"` attribute. At the body's 16 px browser default font-size, the right column on a 1280 px desktop yields a measured line length of ~70 ch which is at the upper edge of comfortable reading; on a single-column phone (after `#05` collapses the columns) the same body copy at 16 px on a 375 px viewport drops to ~40 ch which is too cramped for the bilingual English/Chinese bio. The body font-size should scale fluidly with viewport width (via `clamp()`), and the per-paragraph line length should stay within the 60–75 ch target across 320–1440 px viewports.
