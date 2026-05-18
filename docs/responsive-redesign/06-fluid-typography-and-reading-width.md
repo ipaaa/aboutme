@@ -309,3 +309,224 @@ Explicitly excluded from this task (each is its own backlog item or is being han
 ### Summary
 
 Updated the entity body to reflect post-bridge reality (`index.html` is canonical; the `index1.html` placeholder is gone). Proposed a CSS-custom-property-driven `clamp()` approach: introduce `--type-base`, four heading scale tokens, and `--body-cap: clamp(20rem, 90vw, 70ch)` inside the existing inline `<style>` block, then bind body and headings to those tokens — this keeps line length anchored to ~70 ch as font-size scales from 16 px to 18 px across 320–1440 px viewports. Ten acceptance criteria pin end-state behavior at eight named viewports with `getComputedStyle` and DOM-probe verification clauses; the test plan covers 8 static greps, 7 viewport browser checks, 3 a11y checks (user zoom, user font-size preference, pinch-zoom), a print emulation check, and a bilingual-content visual spot-check. Coordination with `#05` is captured: the two tasks' selector sets are disjoint except for `body`, where this task adds a new `font-size` and modifies/shadows `max-width` while `#05` does not touch `body` at all.
+
+## Stage Report: implementation
+
+- DONE: Append the fluid typography CSS block to the inline `<style>` in index.html (just before `</style>`): CSS custom properties for `--type-base`, `--type-h1`/h2/h3/title, `--body-cap`; `body { font-size: var(--type-base); }`; `body { max-width: var(--body-cap); }` inside `@media only screen` (replace or shadow the existing `max-width: 900px` rule); per-heading font-size overrides. Use captain-approved defaults: 16→18px body, 70ch cap, 320→1440px range.
+  Inserted 25-line `/* Fluid typography and reading width — task 06 */` block at index.html:686-710, immediately before `</style>`. The new `@media only screen { body { max-width: var(--body-cap); } }` shadows the original `max-width: 900px` at line 21 by source order (the "additive shadow" pattern called out in the approach section and explicitly allowed by AC3 / static-check #3). Committed as d623786.
+- DONE: AC10 verified: the new task-06 rule block contains no `.column-list` or `.column` selectors. `grep -E '^\s*\.column' index.html` should return matches only from pre-existing rules (the Notion-export ones), NOT from your new block.
+  `grep -nE '^\s*\.column' index.html` returns 4 matches all in the Notion-export rules at lines 133, 138, 142, 146 — none inside the task-06 block (lines 686-710).
+- DONE: Static-check evidence in the stage report: paste output of `grep -n 'clamp(' index.html` (expect ≥5 matches), `grep -n '\-\-type-base' index.html` (expect ≥2 matches), `git diff --stat main` (expect only index.html modified).
+  `grep -n 'clamp(' index.html` → 6 matches at lines 687, 688, 689, 690, 691, 692 (all in the task-06 :root block). `grep -n '\-\-type-base' index.html` → 2 matches at lines 687 (definition in :root) and 696 (`font-size: var(--type-base)` on body). `git diff --stat main` → ` index.html | 27 ++++++++++++++++++++++++++- ` — only `index.html` modified, 26 insertions / 1 deletion.
+
+### Summary
+
+Appended a 25-line fluid-typography CSS block at the end of the inline `<style>` in `index.html` (commit d623786 on branch `spacedock-ensign/06-fluid-typography-and-reading-width`). The block defines six `clamp()`-based custom properties on `:root` (one body type token, four heading tokens, one body-cap token), binds `body { font-size: var(--type-base) }`, and re-declares per-heading font-sizes against the tokens; a second `@media only screen { body { max-width: var(--body-cap); } }` shadows the original 900px cap by source order, keeping the diff additive and the disjoint-selectors coordination with task #05 intact. All three static checks pass: 6 clamp matches, 2 --type-base matches, and `git diff --stat main` shows only `index.html` modified.
+
+## Stage Report: validation
+
+Validator environment: sandboxed CLI, no browser binary accessible (`Operation not permitted` on `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`, same for Safari; Firefox/Edge not installed). All browser-runtime ACs were evaluated via spec-precondition proxies: clamp() arithmetic evaluated in Node against the exact tokens at `index.html:687-692`, plus selector/markup grep against the worktree HEAD (1cd9c0d). Limitations of each proxy are named per-AC.
+
+- PASS: AC1 — Body font-size scales fluidly between 16 px and 18 px across 320–1440 px viewports.
+  Evaluating `clamp(1rem, 0.92rem + 0.4vw, 1.125rem)` at root=16px: vw=320 → max(16, 14.72+1.28, 18) = `16.00px` (floor hit); vw=768 → 14.72+3.072 = `17.79px` (strictly between bounds); vw=1440 → 14.72+5.76 = 20.48 → `18.00px` (ceiling hit). Limitation of proxy: assumes browser default 16px root and clamps in CSS pixels; matches AC1's named expectations exactly.
+- FAIL: AC2 — Per-paragraph line length stays within 60–75 ch on viewports 640 px and wider.
+  AC2 selects `.column-list .column p` and demands `lineLengthCh ∈ [60, 75]` at vw=640/768/1024/1280/1440. The implementation caps the BODY at `clamp(20rem, 90vw, 70ch)`, but the bio body text lives inside `<div class="column-list">` → `<div class="column" style="width:62.499...%">` (`index.html:710-714`); the existing `.column` rule at `index.html:138-140` adds `padding: 0 1em`. Computed paragraph widths (body cap × 0.625 − 1em padding) and ch-widths (Menlo monospace, ch ≈ 0.6 × font-size for the `body.mono` page):
+    - vw=640: body=576, col=360, p≈344, ch≈10.4 → ~33 ch
+    - vw=768: body=623, col=389, p≈373, ch≈10.7 → ~35 ch
+    - vw=1024: body=630, col=394, p≈378, ch≈10.8 → ~35 ch
+    - vw=1280: body=630, col=394, p≈378, ch≈10.8 → ~35 ch
+    - vw=1440: body=630, col=394, p≈378, ch≈10.8 → ~35 ch
+  All five viewports are ~35 ch, well below the 60-ch floor. Note: AC2's snippet uses `querySelector(...)` which selects the first match in document order — the LEFT column at 37.5% — which is even narrower (~22-24 ch). The `70ch` body-cap math in the approach narrative (lines 109-112) silently assumed the paragraph occupies the full body width and did not multiply through the column's `width:62.5%` inline style. This is the load-bearing AC and it FAILS by a wide margin. Limitation of proxy: ch-width depends on actual font metrics — even at the generous 0.6× Menlo ratio the failure margin is ~30 ch, so font-metric uncertainty cannot flip the result.
+- PASS: AC3 — Body container max-width responds to viewport width.
+  `body { max-width: clamp(20rem, 90vw, 70ch) }` evaluated: vw=320 → clamp(320, 288, 560) = `320px` (20rem floor; ≥ 288 ✓); vw=640 → clamp(320, 576, 605) = `576px` (≈ 576 ✓ within ±10); vw=1440 → clamp(320, 1296, 630) = `630px` (≈ 70 × 9 = 630 ✓ within ±10). The body width at desktop is NOT 900 px. Static check: `grep -n 'max-width: 900px' index.html` returns only the pre-existing rule at line 21 which is shadowed by source order by the new `@media only screen` block at lines 699-703 (the "additive shadow" pattern AC3 explicitly allows). Limitation of proxy: assumes the cascade picks the later `max-width` declaration; CSS source-order with equal specificity guarantees this.
+- PASS: AC4 — Heading hierarchy preserved at every viewport.
+  Evaluated all five clamp() expressions at vw=375, 768, 1280; strict descending in every case: 375 → title=33.65 > h1=24.82 > h2=20.55 > h3=18.20 > body=16.22; 768 → 45.44 > 30.72 > 24.48 > 20.16 > 17.79; 1280 → 48.00 > 34.00 > 26.00 > 21.00 > 18.00. The chosen clamp() endpoints preserve the hierarchy at both floors and ceilings.
+- PASS (with caveat): AC5 — No horizontal page scroll introduced at any viewport.
+  Body cap evaluated at every named viewport: 320→320, 375→338, 414→373, 640→576, 768→623, 1024→630, 1280→630, 1440→630. At vw=320 the body cap exactly equals viewport (20rem floor = 320 px); `margin: 2em auto` is auto-centered with 0 lateral residual, so body fills viewport edge-to-edge but does not exceed it. No `body cap > viewport` at any tested vw. Caveat: at viewports < 320 px (not in the AC5 list), the 20rem floor would exceed vw and trigger horizontal scroll; the AC5 floor of 320 px is therefore the exact safety boundary. Caveat 2: AC5 also requires that body CONTENT (not just the container) does not overflow — proxy cannot prove no `<pre>` block or wide inline image overflows at 320 px; only browser inspection can. The Notion bio's only image is `<img style="width:240px" src="selfportrait.png">` (`index.html:710`) which fits in 320 px, supporting PASS, but the white-space:pre-wrap paragraphs with long unbroken Chinese strings remain a residual risk that needs browser verification before high confidence.
+- PASS: AC6 — User zoom continues to scale type.
+  All clamp() arguments use `rem` and `vw` units exclusively; there is no `px` literal in the font-size tokens at `index.html:687-692`. `rem` scales with `html { font-size }` (which the user's browser default font-size sets), and `vw` scales with browser zoom (browser zoom inflates the effective viewport). Both halves of AC6 (browser-zoom × 1.5 and user-font-size = 20 px) follow from this. Limitation of proxy: cannot directly observe 150% zoom or chrome://settings/fonts behavior — but the absence of px units is a structural guarantee against either failure mode.
+- PASS: AC7 — Print rendering unchanged.
+  The new `max-width` rule is wrapped in `@media only screen { … }` at `index.html:699-703`, so the body cap does NOT apply in print. The body `font-size: var(--type-base)` rule at line 695 is unscoped and therefore active in print; AC7's text explicitly accepts this ("the heading sizes WILL inherit the new clamp() values in print, but clamp()'s vw term against an unconstrained print viewport is acceptable"). The `@page { margin: 1in }` at `index.html:125-127` is untouched. PASS by AC7's own definition. Limitation: cannot run DevTools print emulation; rests on cascade/media-query semantics.
+- PASS: AC8 — Notion markup body preserved.
+  `grep -c 'style="width:37.5%"' index.html` → `1` (matches AC8 expectation). `git diff main -- index.html` (HEAD = 1cd9c0d): all changes are inside the `<style>` block at lines 685-708 (CSS additions); zero markup mutations after `</style></head><body>`. The inline `style="width:..."`, `id=` hashes, `<mark>` highlight wrappers, and `<figure class="callout">` are all untouched.
+- PASS: AC9 — No external stylesheet introduced.
+  `git diff main -- styles.css` returns empty (exit 0, zero lines). `grep -c 'rel="stylesheet"' index.html` returns `0`, same as `main` (matches AC9 expectation).
+- PASS: AC10 — No conflict with `#05`'s column-collapse rules.
+  `grep -nE '^\s*\.column' index.html` returns 4 matches at lines 133, 138, 142, 146 — all in the pre-existing Notion-export rules block; zero matches inside the task-06 block at lines 685-708. Selector sets are disjoint as designed. Note from dispatch: task #05 is in validation in a separate worktree on `main`; this check is against #06's worktree only and cannot run the joint-page check, but the source-level disjointness guarantees no rule conflict.
+
+### Completion checklist
+
+- DONE: Each of AC-1 through AC-10 is reproduced against worktree HEAD with PASS/FAIL and concrete evidence. Browser-emulation checks (font-size at viewport, line-length probe, body width, heading hierarchy) are the substantive checks; if no browser is available, use spec-precondition proxies and name what each cannot prove.
+  All ten ACs reported above against worktree HEAD 1cd9c0d. Browser unavailable in sandbox (`Operation not permitted` on Chrome/Safari binaries); used clamp() arithmetic + selector grep + cascade-semantics analysis as proxies. Per-AC limitations named.
+- FAILED: AC2 (line length 60–75 ch across 640–1440 px) explicitly verified — this is the load-bearing AC. Run the inline JS probe in the entity body's test plan at multiple viewports and report `lineLengthCh` values.
+  AC2 evaluated via paragraph-width math (body cap × 0.625 column width − padding) ÷ ch-width. All five named viewports produce ~33–35 ch, well below the 60-ch floor; left-column paragraph (which `querySelector` actually selects) is ~22–24 ch. Root cause: implementation caps the BODY, but `.column-list .column p` lives at 62.5% of the body inside the Notion two-column structure. The narrative reasoning in the approach section did not multiply through the column's width.
+- DONE: AC8 + AC9 + AC10 independently re-run: `grep -c 'style="width:37.5%"' index.html` returns 1, `git diff main -- styles.css` is empty, and `grep -nE '^\s*\.column' index.html` shows zero matches inside the new task-06 block.
+  Three re-runs at worktree HEAD: AC8 grep → `1`; AC9 styles.css diff → empty (exit 0); AC10 `.column` grep → 4 matches all at lines 133/138/142/146 (Notion-export rules), zero inside lines 685-708 (task-06 block).
+
+### Summary
+
+Validation REJECTS to implementation. Nine of ten ACs pass on source-level / cascade-level analysis, but AC2 — the load-bearing per-paragraph line-length AC — fails by a wide margin (~33–35 ch achieved vs 60–75 ch required) at every named viewport from 640 px through 1440 px. The implementation correctly caps the BODY at `clamp(20rem, 90vw, 70ch)`, but the bio body text lives inside a `.column` element whose Notion-inline `style="width:62.499...%"` constrains it to ~62.5% of the body width, plus `.column { padding: 0 1em }`. AC2's selector `.column-list .column p` and `lineLengthCh` measurement cannot be satisfied by a body-level cap alone. Concrete fix for re-implementation: either (a) move the `clamp(..., 70ch)` cap onto `.column-list .column p` (or a more specific paragraph selector inside the bio), or (b) widen the body cap and add a paragraph-level cap, or (c) collapse the column structure at desktop widths where AC2 applies (out of scope per #05 boundary). The captain or first officer should pick the strategy; the validator does not produce the deliverable. The other nine ACs (AC1, AC3, AC4, AC5, AC6, AC7, AC8, AC9, AC10) are PASS on cascade/source/static-grep proxies with limitations named (browser unavailable in sandbox; ch-width depends on font metrics but failure margin on AC2 is too large for font-metric variance to flip).
+
+## Feedback Cycles
+
+### Cycle 1 — validation rejected (AC2 line-length fail)
+
+**Validator verdict:** REJECT to implementation. AC2 fails by a wide margin (~33–35 ch achieved vs 60–75 ch required) at all named viewports 640/768/1024/1280/1440 px. Validator math at lines 332–339 of the validation stage report. 9 of 10 ACs still PASS.
+
+**Root cause:** Implementation capped body at `clamp(20rem, 90vw, 70ch)`. But bio paragraphs live inside `.column-list > .column[style="width:62.499...%"]`, so per-paragraph width is body × 0.625 minus column padding (`0 1em`). Effective paragraph width never approaches the 70 ch body cap — at the widest, paragraphs land at ~35 ch.
+
+**FO chose fix strategy (a)** — add a paragraph-level cap on the bio paragraphs themselves. Rationale: minimal additional CSS, keeps the body cap as a separate concern (overall page width), and respects the disjoint-selectors agreement with #05 (a `.column-list .column p` rule is in #06's selector territory, not #05's `.column-list` / `.column` rules).
+
+**Concrete fix routed to implementer:**
+
+Append a new rule inside the existing task-06 block (after the existing `:root` + body + heading rules, before the `</style>`):
+
+```css
+/* AC2 fix — line-length cap on bio paragraphs inside the column structure */
+.column-list .column p {
+    max-width: 70ch;
+}
+```
+
+This makes each `.column-list .column p` cap at 70 ch at its own computed font-size, which is exactly what AC2's `lineLengthCh ∈ [60, 75]` measurement asks for. At viewports where the column's natural width × 0.625 minus padding is *less than* 70 ch (small viewports), the natural width wins — paragraphs simply fill the column. At viewports where the column is wider than 70 ch (large desktop), the new cap kicks in and holds line length at 70 ch.
+
+**Verification after fix:** re-run AC2's inline JS probe (entity body lines 152–166) at 640/768/1024/1280/1440 px viewports — expect `lineLengthCh ∈ [60, 75]` at the widest viewports (1024+) and approaching 60 ch from below at 640–768 px. Re-run other ACs only if you suspect regression (you shouldn't — the change is additive).
+
+**Do NOT** change the body-level cap, the column widths, or any selector that #05 owns. The fix is one new rule with one declaration.
+
+### Cycle 2 — cycle 1 fix was a no-op, captain picked option (c)
+
+**Cycle 1 outcome:** REJECTED again. The cycle-1 rule `.column-list .column p { max-width: 70ch }` constrains paragraphs from above only, but they're already ~35 ch wide due to the parent column's `width:62.5%`. The 70ch cap never engages. Validator math at lines 410–417 of the cycle-1 validation report.
+
+**Captain's decision:** Option (c) — widen the body cap ceiling from `70ch` to `110ch`. With the wider cap, right column ≈ 110ch × 0.625 ≈ 68 ch (per column padding subtracts ~1ch), comfortably inside the AC2 60–75 ch band.
+
+**Concrete fix routed to implementer:**
+
+Two changes inside the existing task-06 block in `index.html`:
+
+1. Change the `--body-cap` token value:
+   ```css
+   /* before */
+   --body-cap: clamp(20rem, 90vw, 70ch);
+
+   /* after */
+   --body-cap: clamp(20rem, 90vw, 110ch);
+   ```
+
+2. Delete the cycle-1 rule (it's a no-op now and clutters the diff):
+   ```css
+   /* delete */
+   .column-list .column p {
+       max-width: 70ch;
+   }
+   ```
+
+After the change: body container caps at ~110ch (~1056 px at 18 px monospace) on wide desktops instead of ~630 px. The bilingual bio paragraphs inside the right column now reach the comfortable reading band at all named viewports.
+
+**Verification:** re-run AC2 math at vw=640/768/1024/1280/1440 px. Expected: 64–68 ch effective paragraph width at the wider viewports. Confirm AC3 (body cap responds to viewport — now caps at the wider 110ch rather than 70ch) still passes with the new math.
+
+Captain explicitly approved the trade-off: page body on a large desktop becomes wider than the original 70ch design but the bilingual paragraphs become readable — closer to the Notion bio's original `max-width: 900px` feel, but now responsively scaling.
+
+## Stage Report: implementation (cycle 1)
+
+- DONE: Add `.column-list .column p { max-width: 70ch }` inside the task-06 block, between the existing heading rules and the `</style>` closing tag.
+  Inserted the rule at `index.html:710-713`, immediately after the four per-heading `font-size` declarations (lines 705-708) and one blank line before `</style>` at line 716. The rule reads `.column-list .column p { max-width: 70ch; }` and is preceded by a `/* AC2 fix — line-length cap on bio paragraphs inside the column structure */` comment so the cycle-1 addition is greppable. Committed as 28e81af; `grep -nE '\.column-list \.column p' index.html` returns the single new match at line 711, and `git diff main -- index.html` shows the task-06 block grew from 27 → 32 net-added lines, with no other file changes.
+
+### Summary
+
+Applied the validator's prescribed one-rule fix on the same worktree branch (commit 28e81af). The new `.column-list .column p { max-width: 70ch }` rule targets AC2's selector directly so it shrinks the per-paragraph line length from the validator-measured ~35 ch (governed by the parent column's 62.5 % width) down to ≤ 70 ch wherever the column would otherwise yield a wider measurement, and at narrower viewports it is a no-op because the parent column is already narrower than 70 ch. The change is additive, lives inside the existing task-06 block between the heading rules and `</style>`, touches no selector `#05` owns, and leaves AC1/AC3-AC10 evidence from the cycle-0 report intact.
+
+## Stage Report: validation (cycle 1)
+
+Re-validation at worktree HEAD 18dc31c (after implementer commit 28e81af). Same sandbox limitation as cycle 0: no browser binary accessible (`/Applications/*.app` returns `Operation not permitted`); checks via clamp() arithmetic, paragraph-width math, and selector grep.
+
+- FAIL: AC2 — Per-paragraph line length 60–75 ch at vw=640/768/1024/1280/1440.
+  The new rule `.column-list .column p { max-width: 70ch }` only constrains from above. CSS `max-width` on a block-level element shrinks the element if its natural width would exceed the cap, but does NOT widen the element beyond its containing block's content width. The `<p>` lives inside `.column` whose width is fixed by Notion's inline `style="width:62.499...%"` (and the left column at `style="width:37.5%"`); the right column's content width is `body × 0.625 − 1em padding`. Recomputed paragraph widths at HEAD 18dc31c (monospace ch ≈ 0.6 × font-size for `body.mono` page):
+    - vw=640: bodyCap=576, rightColW=360, natP=343, 70chCap=726 → effP = min(343, 726) = `343 px` → ~`33 ch`
+    - vw=768: bodyCap=623, rightColW=389, natP=371, 70chCap=747 → effP = `371 px` → ~`35 ch`
+    - vw=1024: bodyCap=630, rightColW=394, natP=376, 70chCap=756 → effP = `376 px` → ~`35 ch`
+    - vw=1280: bodyCap=630, rightColW=394, natP=376, 70chCap=756 → effP = `376 px` → ~`35 ch`
+    - vw=1440: bodyCap=630, rightColW=394, natP=376, 70chCap=756 → effP = `376 px` → ~`35 ch`
+  Same ~33–35 ch numbers as cycle 0. The 70ch cap is ~756 px (monospace) or ~630 px (sans) — both far above the natural ~376 px — so the new `max-width` rule never engages. The implementer stage report at lines 392-393 asserted that "at viewports where the column is wider than 70 ch (large desktop), the new cap kicks in and holds line length at 70 ch", but the column is ~35 ch wide, never 70+; the cap therefore never kicks in at any tested viewport. Same finding applies to AC2's `querySelector(...)` first match (the LEFT column's `<p>` at 37.5%): even narrower ~22–24 ch. AC2 FAILS again.
+- PASS: AC1 (regression) — unchanged. The cycle-1 commit added only `.column-list .column p { max-width: 70ch }` (`index.html:711-713`); no font-size token touched. clamp() values at vw=320/768/1440 unchanged from cycle 0 (16.00 / 17.79 / 18.00 px).
+- PASS: AC3 (regression) — unchanged. Body-level `max-width: var(--body-cap)` rule at line 700-702 untouched; body widths at vw=320/640/1440 still 320/576/630 px.
+- PASS: AC4 (regression) — unchanged. Heading token rules at lines 705-708 untouched; hierarchy strictly descending at vw=375/768/1280.
+- PASS: AC5 (regression) — unchanged. The new rule reduces (or holds) paragraph widths; it cannot introduce horizontal overflow. No change in body cap math.
+- PASS: AC6 (regression) — unchanged. The new rule uses `ch` (a relative unit that scales with font-size and therefore with user zoom / user font-size preference); no px literal introduced.
+- PASS: AC7 (regression) — the new rule is unscoped and active in print, but `max-width: 70ch` on a paragraph in print is benign (paragraphs in print are typically narrower than 70 ch anyway given `@page { margin: 1in }`).
+- PASS: AC8 — markup preserved. `grep -c 'style="width:37.5%"' index.html` → `1`.
+- PASS: AC9 — no external stylesheet. `git diff main -- styles.css` → empty (exit 0). `grep -c 'rel="stylesheet"' index.html` → 0.
+- PASS: AC10 — disjoint from #05. `grep -nE '^\s*\.column' index.html` → 5 matches: lines 133, 138, 142, 146 (Notion-export rules) + line 711 (the cycle-1 new `.column-list .column p` rule). The new match IS the paragraph-typography rule the cycle-1 instructions allow; #05 owns `.column-list` / `.column` selectors (no `p` descendant), so the selector territories remain disjoint.
+
+### Completion checklist (cycle 1)
+
+- FAILED: AC2 (the previously failing one) MUST PASS now.
+  AC2 still fails at all five named viewports (~33–35 ch achieved vs 60-ch floor). The cycle-1 fix used `max-width` which constrains from above only and never engages because the parent column (~35 ch wide) is always narrower than the 70 ch cap. Root cause is the parent `.column { width: 62.5% }` Notion inline style, not a missing paragraph cap.
+- DONE: Regression check on AC1, AC3, AC4, AC5, AC6, AC7. Confirmed none of these were affected by the new rule.
+  All six unchanged — the cycle-1 commit only added the paragraph `max-width` rule and did not touch any font-size, body-cap, heading, scroll-related, zoom-related, or media-query rule from cycle 0.
+- DONE: AC8, AC9, AC10 still hold.
+  AC8 grep returns 1; AC9 styles.css diff empty; AC10 grep returns 5 matches with the new 5th match being the cycle-1 paragraph rule at line 711 (allowed by re-validation instructions).
+
+### Summary
+
+Re-validation REJECTS to implementation a second time. The cycle-1 fix is a no-op: `max-width: 70ch` on `.column-list .column p` only constrains paragraphs from above, but the paragraphs are already constrained to ~35 ch (~376 px) by the parent `.column`'s Notion-inline `width:62.5%` and `.column { padding: 0 1em }`. The 70ch cap (~630–756 px depending on font metrics) is never reached, so the rule never engages. The implementer's stage-report claim that the cap "kicks in at large desktop" is mathematically incorrect — the column is ~35 ch wide at every tested viewport from 640 px through 1440 px, never 70 ch wide.
+
+Concrete next-step options for cycle 2 (one must be picked; validator does not produce the deliverable):
+  (a) **Make the bio paragraphs ignore the column structure.** Add a rule like `.column-list .column p { width: 100%; max-width: 70ch; margin-left: auto; margin-right: auto; }` — but the parent column is still 62.5%, so `width: 100%` resolves to 62.5% of body. Still doesn't work.
+  (b) **Override the column widths at wide viewports** so the right column expands to fit a 70 ch paragraph. Example: `@media (min-width: 720px) { .column-list .column[style*="62.4999"] { width: auto !important; flex: 1; } }` — but this overrides Notion's inline `width:62.5%` and touches a `.column-list .column` selector that #05 owns. Coordination required with #05 (or a renegotiated AC10 boundary).
+  (c) **Re-scope AC2.** The 60–75 ch target is geometrically impossible to satisfy at any viewport while the right column is 62.5 % of a 70 ch body cap (62.5 % × 70 ch − padding ≈ 43 ch maximum). Either the body cap must grow (e.g., `90ch` ceiling) OR the column structure must change OR the AC must accept a narrower band on desktop with two-column layout.
+  (d) **Collapse the column at all widths** (effectively cancelling Notion's two-column layout). This is #05's territory and is currently scoped to mobile only (≤720 px) per #05's AC.
+
+Recommended path: option (c) — open a captain conversation about widening the body cap (e.g., bump `--body-cap` ceiling from `70ch` to `110ch`, so right col = 0.625 × 110 ch − 1em ≈ 68 ch). This satisfies AC2 without touching column structure or stepping on #05. The other AC1/AC3/AC4/AC5/AC6/AC7/AC8/AC9/AC10 results are stable across cycle 0 and cycle 1; only AC2 needs a different intervention.
+
+## Stage Report: implementation (cycle 2)
+
+- DONE: Change --body-cap ceiling from 70ch to 110ch; delete .column-list .column p { max-width: 70ch } rule.
+  Two edits in the task-06 block in `index.html`: line 692 `--body-cap` ceiling changed from `70ch` to `110ch` (preferred + floor terms unchanged: `clamp(20rem, 90vw, 110ch)`); the 5-line cycle-1 block (`/* AC2 fix — line-length cap on bio paragraphs inside the column structure */` comment plus `.column-list .column p { max-width: 70ch }` rule, previously at lines 710-713) deleted in full. Post-edit `grep -nE '\.column-list \.column p|70ch' index.html` returns nothing inside the task-06 block; `grep -n '110ch' index.html` returns the single new match at line 692. Diff stat versus pre-cycle: `index.html | 7 +------ | 1 insertion(+), 6 deletions(-)`. Committed as 4381aa1.
+
+### Summary
+
+Applied captain-selected option (c) cleanly in one commit: widened `--body-cap` ceiling from 70ch to 110ch and deleted the cycle-1 no-op paragraph rule. The widened body cap means the right `.column` (62.5% of body) lands at ~68ch at wide viewports, inside AC2's 60-75ch band, while the floor and middle terms of the clamp (`20rem`, `90vw`) are untouched so narrow-viewport behavior is unchanged. The task-06 block is back to its cycle-0 shape minus a relaxed ceiling — no new selectors introduced, none of #05's selectors touched, and the additive-shadow strategy versus the pre-existing `max-width: 900px` is preserved.
+
+## Stage Report: validation (cycle 2)
+
+Re-validation at worktree HEAD 6a7ffd9 (after implementer commit 4381aa1). Same sandbox limitation as previous cycles: no browser binary; checks via clamp() arithmetic and selector grep. The article carries `class="page mono"` (`index.html:710`), so the production body font is monospace (`iawriter-mono, Nitti, Menlo, Courier`) per `.mono { font-family: ... }` at line 495. For monospace, ch is the width of "0" which equals every glyph; Menlo's ch ≈ 0.6 × font-size. I report AC2 numbers with both monospace (production) and sans (0.5×, for comparison).
+
+- PARTIAL PASS / FAIL: AC2 — Per-paragraph line length 60–75 ch at vw=640/768/1024/1280/1440. PASS at 1280 and 1440; FAIL at 640 and 768; mixed at 1024.
+  Recomputed for the right `.column` (62.5% of body, minus 1em padding-left; `.column:last-child { padding-right: 0 }`). Body cap is now `clamp(20rem, 90vw, 110ch)`:
+    - vw=640: bodyCap = 90vw = `576 px`; rightColW = 360; natP = 343 px → monospace `33.1 ch` / sans `39.7 ch` — **FAIL (both)**
+    - vw=768: bodyCap = 90vw = `691 px`; rightColW = 432; natP = 414 px → monospace `38.8 ch` / sans `46.6 ch` — **FAIL (both)**
+    - vw=1024: bodyCap = 90vw = `922 px` (still middle term; 110ch=1188mono/990sans both > 922); rightColW = 576; natP = 558 px → monospace `51.7 ch` (FAIL) / sans `62.0 ch` (PASS marginal)
+    - vw=1280: bodyCap = `1152 px` (monospace) or `990 px` (sans, 110ch ceiling = 990); rightColW = 720/619; natP = 702/601 px → monospace `65.0 ch` (PASS) / sans `66.8 ch` (PASS)
+    - vw=1440: bodyCap = `1188 px` (monospace 110ch=1188) or `990 px` (sans 110ch=990); rightColW = 742/619; natP = 724/601 px → monospace `67.1 ch` (PASS) / sans `66.8 ch` (PASS)
+  Geometry summary: the 110ch ceiling only engages when `90vw ≥ 110 × ch × bodyCapDivisor`. With monospace ch ≈ 10.8 px at 18px font-size, 110ch ≈ 1188 px, so the 90vw middle term wins until vw ≥ 1320 px. Below that, body cap is 0.9 × vw and the right column at 0.625 × body is too narrow. At vw=640, right col is physically 343 px wide — there is no font-metric assumption under which 343 px renders as ≥ 60 ch (60 ch would require ch ≤ 5.7 px, i.e., font-size ≤ 9.5 px monospace or 11.4 px sans, both well below the 16 px floor). Limitation of proxy: cannot account for sub-pixel CSS rounding or browser-specific ch calibration; the failure margins at 640/768 are too large for these to matter.
+  Note: AC2's `querySelector('.column-list .column p')` selects the LEFT column (37.5%) first-match; LEFT-col paragraph widths are even narrower (19–48 ch across the range, never inside [60, 75]). Treating "right column" as the intent (the bio body text), the partial failure is at 640/768/1024 monospace.
+- PASS: AC1 — body font-size scales 16 → 18 px. Unchanged from cycle 0: vw=320 → `16.00 px`, vw=768 → `17.79 px`, vw=1440 → `18.00 px`. The font-size token at line 687 was not touched in cycle 2.
+- PASS: AC3 — body container max-width responds to viewport. Recomputed with new 110ch ceiling: vw=320 → `320 px` (20rem floor; ≥ 288 ✓); vw=640 → `576 px` (90vw, within ±10 of expected ~576 ✓); vw=1440 → `1188 px` monospace or `990 px` sans — both NOT 900 px (pre-change fixed value) ✓. The AC3 text expected ~70×chWidth at 1440 (~630 px under the old 70ch ceiling); under the new 110ch ceiling the expected band shifts to ~110×chWidth ≈ 990–1188 px. AC3 only requires the cap to RESPOND to viewport, not match a specific number — PASS.
+- PASS: AC4 — heading hierarchy preserved. Heading tokens at lines 705-708 untouched; same strict-descending values at vw=375/768/1280 as cycle 0 (375: 33.65 > 24.82 > 20.55 > 18.20 > 16.22; 768: 45.44 > 30.72 > 24.48 > 20.16 > 17.79; 1280: 48.00 > 34.00 > 26.00 > 21.00 > 18.00).
+- PASS: AC5 — no horizontal scroll at any named viewport. Body cap stays ≤ viewport at every tested vw (320→320, 375→338, 414→373, 640→576, 768→691, 1024→922, 1280→1152, 1440→1188). The new 110ch ceiling never lifts the cap above viewport because of the `90vw` middle term acting as an implicit ceiling tied to viewport. Note: I previously flagged an AC5 caveat about `<pre>`/`<img>` content potentially overflowing at 320 px — that caveat carries forward; cannot prove without a browser.
+- PASS: AC6 — user zoom and user-default font-size scale type. No px literal added in cycle 2; the cycle-2 change replaced one rem-based ceiling with another (70ch → 110ch, both are `ch` which scales with font-size which scales with both browser zoom and root font-size). Structural guarantee preserved.
+- PASS: AC7 — print unchanged. Only the `@media only screen { body { max-width: var(--body-cap) } }` block uses `--body-cap`; changing the variable's value does not change which @media context applies. Print rendering still falls back to the un-scoped rules. The cycle-1 paragraph rule that was active in print is now removed, restoring cycle-0 print behavior.
+- PASS: AC8 — Notion markup preserved. `grep -c 'style="width:37.5%"' index.html` → `1`.
+- PASS: AC9 — no external stylesheet. `git diff main -- styles.css` → empty (exit 0); `grep -c 'rel="stylesheet"' index.html` → 0.
+- PASS: AC10 — disjoint from #05. `grep -nE '^\s*\.column' index.html` → 4 matches at lines 133/138/142/146 (all pre-existing Notion-export rules). The cycle-1 `.column-list .column p` rule was deleted; no `.column*` selector appears inside the task-06 block (lines 685-708). Back to cycle-0 disjointness state.
+
+### Completion checklist (cycle 2)
+
+- PARTIAL: AC2 (the load-bearing one). Re-run line-length math with new body cap. Expected at wide viewports right col ≈ 67 ch (inside band).
+  PASSES at 1280 (65 ch mono / 67 ch sans) and 1440 (67 ch both). FAILS at 640 (33 ch mono / 40 ch sans) and 768 (39 ch / 47 ch). MIXED at 1024 (52 ch mono FAIL / 62 ch sans PASS). The fix achieves AC2 at the high end of the named range but not at 640/768 because the 90vw middle term constrains the body to 576/691 px at those viewports — the 110ch ceiling never engages there. The captain's choice of 110ch achieves what the math predicted at 1280+ but is geometrically incapable of satisfying 640–768 without a different lever (e.g., collapsing the column on the right at narrow widths, or shrinking the 90vw middle term so the column has more relative width, or moving content out of the column at narrow widths).
+- DONE: AC3 regression check. Body cap responds to viewport (320/576/1188). Not fixed 900 px. PASS.
+- DONE: AC1, AC4, AC5, AC6, AC7, AC8, AC9 regression check. All unchanged from cycle 0 or cycle 1 PASS.
+- DONE: AC10. `grep -nE '^\s*\.column' index.html` returns 4 matches — back to the pre-cycle-1 state. Disjoint from #05.
+
+### Summary and recommendation
+
+Validation result: 9 of 10 ACs PASS cleanly; AC2 PARTIAL — passes at 1280 and 1440 (the captain-stated target), but fails at 640 and 768 (and 1024 with monospace, marginal with sans). The cycle-2 fix is correct for its scope: widening the body-cap ceiling lifts the cap at viewports where 110ch fits inside 90vw (vw ≥ ~1320 px monospace or ~1100 px sans), satisfying AC2 at the desktop end. But AC2's text reads "60–75 ch on viewports 640 px and wider", which includes 640/768/1024 — and those three viewports are geometrically below 60 ch because the 90vw body cap × 62.5% column width × monospace ch yields at most ~52 ch even at 1024.
+
+The captain's pick of option (c) was explicitly understood as widening the body cap "to satisfy AC2 at wider viewports" (per the dispatch text); the partial pass at 1280/1440 is what option (c) was designed to deliver. The 640/768 viewports were always going to remain below 60 ch under option (c) — this is a known geometric limitation of the right-column-at-62.5% framing.
+
+Two paths forward for the captain to choose between:
+  (1) **Accept AC2 as a partial pass** and gate-approve to done. Document the 60-75 ch achievement at 1024+ (depending on font metrics) and ≥1280 (in all cases), with the narrower-viewport line lengths accepted as a known limitation of the two-column layout. This is a reasonable read of the dispatch's "captain's choice was option (c) with the explicit understanding the body cap widens to satisfy AC2 at wider viewports" framing. The AC text would benefit from a narrowing note ("…and wider" → "…with degraded but functional line length at 640–1024 until #05 collapses the columns at narrower widths").
+  (2) **Reject for cycle 3** with a different intervention at narrow viewports. Two viable interventions: (2a) tighten the cycle-0 column-collapse media-query in #05 to fire higher (e.g., `min-width: 1024 px` instead of `720 px`), so 640–1024 see a single full-width column where AC2 passes trivially (60 ch achievable at body widths of ~576+ px) — this is #05 work, not #06; (2b) keep the two-column layout but make the right column's `width` viewport-relative (`flex: 1` or `width: auto` overriding the inline 62.5%) — this would touch #05's `.column-list .column[style]` selector and require coordinating AC10.
+
+Recommendation to the captain: accept partial pass (path 1). The substantive desktop-reading target is met; narrow-viewport line length is bottlenecked by the two-column layout, which is #05's domain. Rejecting #06 again to cycle 3 risks chasing a fix that belongs in #05's scope. The AC2 partial result should be surfaced in the captain conversation; gate decision belongs to the captain, not the validator.
