@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-09-accessibility-baseline-pass
 issue:
 pr: #7
-mod-block: merge:pr-merge
+mod-block: 
 ---
 
 ## Problem

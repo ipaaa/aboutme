@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-10-strip-notion-export-boilerplate
 issue:
 pr: #8
-mod-block: merge:pr-merge
+mod-block: 
 ---
 
 ## Re-ideation framing (post-bridge)
