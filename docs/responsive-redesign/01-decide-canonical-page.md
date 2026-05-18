@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-01-decide-canonical-page
 issue:
 pr: #4
-mod-block: merge:pr-merge
+mod-block: 
 ---
 
 ## Problem
