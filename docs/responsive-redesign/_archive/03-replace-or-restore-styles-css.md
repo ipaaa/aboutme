@@ -1,16 +1,17 @@
 ---
 id: d7zzrwcfx39j0g21drbhh7fp
 title: Replace or restore styles.css
-status: ideation
+status: done
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
-completed:
-verdict:
+completed: 2026-05-18T17:28:37Z
+verdict: REJECTED
 score:
 worktree:
 issue:
 pr:
 mod-block:
+archived: 2026-05-18T17:28:37Z
 ---
 
 ## Re-ideation framing (post-bridge)

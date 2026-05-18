@@ -1,13 +1,13 @@
 ---
 id: 1t2drvakfvkdfcpyj3pwra3r
 title: Accessibility baseline pass
-status: ideation
+status: implementation
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-09-accessibility-baseline-pass
 issue:
 pr:
 mod-block:
