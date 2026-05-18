@@ -117,3 +117,16 @@ Explicitly excluded from this task (each is its own backlog item):
 ### Summary
 
 Fleshed out the ideation spec for the smallest end-to-end cycle: add `<!DOCTYPE html>` as line 1 and a `width=device-width, initial-scale=1.0` viewport meta to `index1.html` only. Wrote 7 acceptance criteria with greppable / DevTools-verifiable end-state properties and a 10-step test plan covering source checks, mobile-viewport behavior at 375 px (clientWidth and body-copy size), desktop regression at 1280 px, user-zoom preservation, and cross-page parity with `index.html`. Kept the scope tight — every adjacent a11y item from the audit is named explicitly in Out of Scope as its own backlog task.
+
+## Stage Report: implementation
+
+- DONE: Exactly two edits land in index1.html only: `<!DOCTYPE html>` as line 1, and `<meta name="viewport" content="width=device-width, initial-scale=1.0">` inside <head> after the existing charset meta. No other content change.
+  Single Edit prepended `<!DOCTYPE html>\n` before `<html>` and inserted the viewport meta between the existing `<meta http-equiv="Content-Type" ...>` and `<title>Ipa CHIU</title>`; `git diff --stat main` shows `index1.html | 3 ++-` (2 insertions, 1 deletion — the deletion is the original line 1, replaced by the new doctype + html line).
+- DONE: AC-7 verified: `git diff main -- index.html` in the worktree returns empty (index.html not touched).
+  `git diff main -- index.html` returned no output.
+- DONE: Static-check evidence in the stage report: paste output of `head -n 1 index1.html`, `grep -n 'name="viewport"' index1.html`, and `git diff --stat main` showing only index1.html modified with a small line delta.
+  `head -n 1 index1.html` → `<!DOCTYPE html>`; `grep -n 'name="viewport"' index1.html` → `2:<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ipa CHIU</title><style>`; `git diff --stat main` → ` index1.html | 3 ++-\n 1 file changed, 2 insertions(+), 1 deletion(-)`.
+
+### Summary
+
+Made the two minimal source edits to `index1.html`: prepended `<!DOCTYPE html>` as line 1 and inserted the viewport meta inside `<head>` immediately after the existing `Content-Type` meta. No other content, CSS, or structure changed; `index.html` was not touched. Static checks (AC1, AC2, AC3, AC7) all pass; browser-emulation checks (AC4–AC6) are validation's responsibility.
