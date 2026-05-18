@@ -1,16 +1,17 @@
 ---
 id: w2vpev91fdab1ycpqe2t0rss
 title: Audit current site
-status: validation
+status: done
 source: commission seed
 started: 2026-05-17T23:00:16Z
-completed:
-verdict:
+completed: 2026-05-18T02:10:37Z
+verdict: PASSED
 score:
-worktree: .worktrees/spacedock-ensign-audit-current-site
+worktree: 
 issue:
 pr: #1
 mod-block: 
+archived: 2026-05-18T02:10:39Z
 ---
 
 ## Problem
