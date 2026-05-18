@@ -366,3 +366,30 @@ Validator environment: sandboxed CLI, no browser binary accessible (`Operation n
 ### Summary
 
 Validation REJECTS to implementation. Nine of ten ACs pass on source-level / cascade-level analysis, but AC2 — the load-bearing per-paragraph line-length AC — fails by a wide margin (~33–35 ch achieved vs 60–75 ch required) at every named viewport from 640 px through 1440 px. The implementation correctly caps the BODY at `clamp(20rem, 90vw, 70ch)`, but the bio body text lives inside a `.column` element whose Notion-inline `style="width:62.499...%"` constrains it to ~62.5% of the body width, plus `.column { padding: 0 1em }`. AC2's selector `.column-list .column p` and `lineLengthCh` measurement cannot be satisfied by a body-level cap alone. Concrete fix for re-implementation: either (a) move the `clamp(..., 70ch)` cap onto `.column-list .column p` (or a more specific paragraph selector inside the bio), or (b) widen the body cap and add a paragraph-level cap, or (c) collapse the column structure at desktop widths where AC2 applies (out of scope per #05 boundary). The captain or first officer should pick the strategy; the validator does not produce the deliverable. The other nine ACs (AC1, AC3, AC4, AC5, AC6, AC7, AC8, AC9, AC10) are PASS on cascade/source/static-grep proxies with limitations named (browser unavailable in sandbox; ch-width depends on font metrics but failure margin on AC2 is too large for font-metric variance to flip).
+
+## Feedback Cycles
+
+### Cycle 1 — validation rejected (AC2 line-length fail)
+
+**Validator verdict:** REJECT to implementation. AC2 fails by a wide margin (~33–35 ch achieved vs 60–75 ch required) at all named viewports 640/768/1024/1280/1440 px. Validator math at lines 332–339 of the validation stage report. 9 of 10 ACs still PASS.
+
+**Root cause:** Implementation capped body at `clamp(20rem, 90vw, 70ch)`. But bio paragraphs live inside `.column-list > .column[style="width:62.499...%"]`, so per-paragraph width is body × 0.625 minus column padding (`0 1em`). Effective paragraph width never approaches the 70 ch body cap — at the widest, paragraphs land at ~35 ch.
+
+**FO chose fix strategy (a)** — add a paragraph-level cap on the bio paragraphs themselves. Rationale: minimal additional CSS, keeps the body cap as a separate concern (overall page width), and respects the disjoint-selectors agreement with #05 (a `.column-list .column p` rule is in #06's selector territory, not #05's `.column-list` / `.column` rules).
+
+**Concrete fix routed to implementer:**
+
+Append a new rule inside the existing task-06 block (after the existing `:root` + body + heading rules, before the `</style>`):
+
+```css
+/* AC2 fix — line-length cap on bio paragraphs inside the column structure */
+.column-list .column p {
+    max-width: 70ch;
+}
+```
+
+This makes each `.column-list .column p` cap at 70 ch at its own computed font-size, which is exactly what AC2's `lineLengthCh ∈ [60, 75]` measurement asks for. At viewports where the column's natural width × 0.625 minus padding is *less than* 70 ch (small viewports), the natural width wins — paragraphs simply fill the column. At viewports where the column is wider than 70 ch (large desktop), the new cap kicks in and holds line length at 70 ch.
+
+**Verification after fix:** re-run AC2's inline JS probe (entity body lines 152–166) at 640/768/1024/1280/1440 px viewports — expect `lineLengthCh ∈ [60, 75]` at the widest viewports (1024+) and approaching 60 ch from below at 640–768 px. Re-run other ACs only if you suspect regression (you shouldn't — the change is additive).
+
+**Do NOT** change the body-level cap, the column widths, or any selector that #05 owns. The fix is one new rule with one declaration.
