@@ -9,7 +9,7 @@ verdict:
 score:
 worktree: .worktrees/spacedock-ensign-02-add-viewport-meta-and-doctype
 issue:
-pr:
+pr: #2
 mod-block: merge:pr-merge
 ---
 

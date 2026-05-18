@@ -9,7 +9,7 @@ verdict:
 score:
 worktree: .worktrees/spacedock-ensign-08-actionable-contact-and-social-links
 issue:
-pr:
+pr: #3
 mod-block: merge:pr-merge
 ---
 
