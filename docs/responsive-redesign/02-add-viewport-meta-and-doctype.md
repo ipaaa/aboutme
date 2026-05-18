@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-02-add-viewport-meta-and-doctype
 issue:
 pr:
-mod-block:
+mod-block: merge:pr-merge
 ---
 
 `index1.html` has no `<meta name="viewport">` and no `<!DOCTYPE>`, so phones render it at the ~980 px layout viewport and downscale to illegible text. Every page should opt into the mobile layout viewport so text is readable without pinch-zoom from 320 px upward.
