@@ -231,3 +231,16 @@ Explicitly excluded from this task (each is its own backlog item):
 ### Summary
 
 Updated the entity body to reflect the post-bridge reality (`index.html` is now canonical; the placeholder `index1.html` was deleted in bridge merge `a4fdfc0`). Proposed a mobile-first override inside the existing inline `<style>` block — adds `flex-wrap: wrap` plus a `min-width: 720px` media query that restores the 37.5 % / 62.5 % desktop widths via attribute selectors with `!important`, preserving Notion's inline markup. Nine acceptance criteria pin end-state behavior at 320 / 375 / 414 / 719 / 720 / 1280 px viewports with `getBoundingClientRect`-based verification clauses; 15-step test plan covers static greps, six viewport checks, breakpoint hysteresis at 719 vs 720, and a pre/post screenshot capture for validation. Breakpoint default is 720 px with rationale; final pick is captain's at the gate.
+
+## Stage Report: implementation
+
+- DONE: Append the responsive column-collapse CSS block to the inline `<style>` in index.html (just before `</style>`), with `flex-wrap: wrap` + `width: 100% !important` mobile defaults and `@media (min-width: 720px)` restoring the 37.5%/62.5% widths via attribute selectors with `!important`. Use the captain-approved 720 px breakpoint.
+  New block lands at index.html:686-710 immediately before `</style></head>` at line 712. Mobile defaults set `.column-list { flex-wrap: wrap }` and `.column-list > .column[style] { width: 100% !important; padding: 0 }`. `@media (min-width: 720px)` restores `width: 37.5% !important` / `width: 62.5% !important` via `[style*="width:37.5%"]` and `[style*="width:62.4"]` attribute selectors, plus the original `padding: 0 1em` and first/last-child padding-zero rules.
+- DONE: AC8 verified: `grep -c 'style="width:37.5%"' index.html` returns 1 AND `grep -c 'style="width:62.499999999999986%"' index.html` returns 1 (Notion inline markup preserved — your edits add CSS, not mutate markup).
+  Both greps return `1`. No `<div>` markup edited; the override lives entirely in CSS.
+- DONE: Static-check evidence in the stage report: paste output of `git diff --stat main` (expect only index.html modified), `grep -n '@media (min-width:' index.html`, and `grep -n 'flex-wrap' index.html`.
+  `git diff --stat main` → ` index.html | 26 +++++++++++++++++++++++++-` (1 file, 25+/1-). `grep -n '@media (min-width:' index.html` → `695:@media (min-width: 720px) {`. `grep -n 'flex-wrap' index.html` → `687:\tflex-wrap: wrap;`. Both new directives are inside the inline `<style>` block (which closes at line 712). Note: `grep -E "order\s*:\s*[0-9-]" index.html` returns 3 matches, all pre-existing `border: 1px ...` lines at 74/178/343 outside the new block — AC6's "no `order:` inside the new rule block" is satisfied.
+
+### Summary
+
+Added a 25-line CSS block to the inline `<style>` in `index.html` (lines 686-710) that makes `.column-list` wrap and stretches its children to 100 % width by default, then restores the 37.5 %/62.5 % desktop layout inside `@media (min-width: 720px)` via attribute selectors with `!important`. Notion's inline `style="width:..."` attributes are preserved (AC8 passes); no markup, `styles.css`, or other files touched. All required static checks pass; viewport behavior is validation's job.
