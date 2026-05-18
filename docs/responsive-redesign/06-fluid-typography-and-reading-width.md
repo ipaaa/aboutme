@@ -9,7 +9,7 @@ verdict:
 score:
 worktree: .worktrees/spacedock-ensign-06-fluid-typography-and-reading-width
 issue:
-pr:
+pr: #6
 mod-block: merge:pr-merge
 ---
 
