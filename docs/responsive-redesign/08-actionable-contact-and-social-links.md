@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-08-actionable-contact-and-social-links
 issue:
 pr: #3
-mod-block: merge:pr-merge
+mod-block: 
 ---
 
 Contact addresses are written `ipawei [at] gmail.com` / `ipawei [at] proton.me` instead of `mailto:` links, and at least four outbound social URLs use `http://` (Facebook, Medium, Mastodon, Twitter — plus one `http://g0v.tw` link). Tapping a contact line should open the mail client, and every outbound link should be HTTPS so browsers do not flag them as insecure.
