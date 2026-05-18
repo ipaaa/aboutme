@@ -217,3 +217,16 @@ Meta tags are not viewport-sensitive (they don't render to the page), so the usu
 ### Summary
 
 Ideation fleshed out the OG / Twitter Card task with 15 ACs covering every tag (og + twitter, ~18 tags including alts and locale alternate), three candidate titles, three candidate descriptions, an image-strategy recommendation (reuse `selfportrait.png` v1, follow-up entity for a dedicated 1200×630 card), and a two-surface test plan (static greps + live previews on Facebook / X / iMessage / Slack / Substack / Mastodon). Key decisions deferred to captain at gate: title pick, description pick, and whether to fold #14 (meta description) into #13's scope or keep them as separate entities sharing one description string (recommended: keep separate, share copy).
+
+## Stage Report: implementation
+
+- DONE: Add the contiguous OG + Twitter Card block to <head> in index.html per the entity body's HTML structure section. Use Title candidate 3 (`Ipa Chiu 瞿筱葳`) for og:title and twitter:title. Use Description candidate 1 for og:description and twitter:description.
+  Inserted 18 contiguous `<meta>` tags between the existing `<meta name="viewport">` and `<title>` in `index.html`; og:title = `Ipa Chiu 瞿筱葳`, og:description = description candidate 1 (167 chars).
+- DONE: AC-1 through AC-12 verified by grep — og:title, og:description, og:type=profile, og:url, og:image (selfportrait.png), og:image:alt, og:locale=zh_TW, og:locale:alternate=en_US, og:site_name=ipachiu.me, twitter:card=summary_large_image, twitter:site=@ipa, twitter:creator=@ipa, twitter:title, twitter:description, twitter:image, twitter:image:alt; AC-12 tags contiguous in <head>.
+  All 9 og:* + 2 profile:* + 7 twitter:* tags present with exact values from spec; greps return: `og:type="profile"`, `og:url="https://ipachiu.me/"`, `og:site_name="ipachiu.me"`, `og:locale="zh_TW"`, `og:locale:alternate="en_US"`, `twitter:card="summary_large_image"`, `twitter:site="@ipa"`, `twitter:creator="@ipa"`, both image URLs = `https://ipachiu.me/selfportrait.png`; block is one contiguous run (AC-12).
+- DONE: Static-check evidence — `grep -c 'property="og:' index.html` (expect 9+), `grep -c 'name="twitter:' index.html` (expect 6+), `wc -c index.html` before/after to verify AC-15 (<2KB regression).
+  `grep -oc` counts: 9 og:* matches, 7 twitter:* matches (single-line file, so `grep -c` line-count returns 1 — used `grep -o | wc -l` for true occurrence count). `wc -c index.html` before = 13181, after = 14496, delta = 1315 bytes (well under 2 KB AC-15 cap). Lang attribute unchanged (`<html lang="zh-Hant"`).
+
+### Summary
+
+Added a contiguous block of 18 social-preview meta tags (9 Open Graph, 2 profile:*, 7 Twitter Card) to `<head>` in `index.html` between the existing viewport meta and `<title>`. Used captain-chosen Title candidate 3 (`Ipa Chiu 瞿筱葳`) and Description candidate 1 (English-led role + Bay Area anchor, 167 chars). Page weight grew by 1315 bytes (under the 2 KB AC-15 cap); no other markup touched, so #12's favicon work and #14's meta-description work have non-overlapping insertion points still open in `<head>`. Live-preview validation (Facebook debugger, X Card Validator, iMessage/Slack/Substack/Mastodon paste tests) is the next stage's job.
