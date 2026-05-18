@@ -1,16 +1,17 @@
 ---
 id: gcvedf28xajs7rbwpbwx1bcb
 title: Strip Notion-export boilerplate
-status: validation
+status: done
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
-completed:
-verdict:
+completed: 2026-05-18T17:45:20Z
+verdict: PASSED
 score:
-worktree: .worktrees/spacedock-ensign-10-strip-notion-export-boilerplate
+worktree: 
 issue:
 pr: #8
 mod-block: 
+archived: 2026-05-18T17:45:20Z
 ---
 
 ## Re-ideation framing (post-bridge)

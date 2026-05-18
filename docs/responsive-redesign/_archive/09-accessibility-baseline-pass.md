@@ -1,16 +1,17 @@
 ---
 id: 1t2drvakfvkdfcpyj3pwra3r
 title: Accessibility baseline pass
-status: validation
+status: done
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
-completed:
-verdict:
+completed: 2026-05-18T17:45:20Z
+verdict: PASSED
 score:
-worktree: .worktrees/spacedock-ensign-09-accessibility-baseline-pass
+worktree: 
 issue:
 pr: #7
 mod-block: 
+archived: 2026-05-18T17:45:20Z
 ---
 
 ## Problem
