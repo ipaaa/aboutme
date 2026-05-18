@@ -1,7 +1,7 @@
 ---
 id: ptzdwjpgq0cj4kjf5csbj1ds
 title: Add favicon
-status: implementation
+status: validation
 source: FO upgrade suggestion
 started: 2026-05-18T17:55:20Z
 completed:
