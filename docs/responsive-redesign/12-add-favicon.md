@@ -1,15 +1,15 @@
 ---
 id: ptzdwjpgq0cj4kjf5csbj1ds
 title: Add favicon
-status: validation
+status: done
 source: FO upgrade suggestion
 started: 2026-05-18T17:55:20Z
-completed:
-verdict:
-score:
-worktree: .worktrees/spacedock-ensign-12-add-favicon
+completed: 2026-05-19T00:30:00Z
+verdict: approved
+score: 1.0
+worktree:
 issue:
-pr:
+pr: 10
 mod-block:
 ---
 
