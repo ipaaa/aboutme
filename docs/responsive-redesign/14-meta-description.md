@@ -180,3 +180,43 @@ Ideation fleshes out #14 with 8 AC covering the single-tag end state (presence, 
 ### Summary
 
 Added the single `<meta name="description">` tag to index.html, line 2, immediately after `<meta name="viewport">`. Content matches #13's chosen description string verbatim (165 chars / 167 UTF-8 bytes) — over AC-3's ≤160 cap but shipped per dispatch instruction to mirror #13. Two items for captain decision at validation gate: (1) whether to trim the 5-char overrun (drop "Area" → 161 chars; drop "work" too → 156 chars) or accept it; (2) the AC-3 canonical awk verifier mis-parses the single-line HTML because viewport also has a `content="` attribute — either revise the verifier or split metas onto separate lines.
+
+## Stage Report: validation
+
+Worktree HEAD at commit c446267 (`#14: add <meta name="description"> to index.html`). All static AC verifications run from worktree root against current `index.html`.
+
+- DONE: Each of AC-1 through AC-8 reproduced against worktree HEAD with PASS/FAIL and concrete evidence. Include both the canonical verifier output AND a corrected re-derivation when the canonical verifier is broken by the single-line HTML.
+  See per-AC evidence block below.
+- DONE: AC-3 length check independently re-run via a robust extractor (python3 with a regex like `<meta name="description" content="([^"]*)"`); report the actual character and byte counts. State PASS/FAIL relative to the ≤160 cap; if FAIL, list the two trim variants under "Captain decision required at gate".
+  Python3 regex extractor confirms 165 visible chars / 167 UTF-8 bytes. FAIL ≤160. Two trim variants computed below (note: drop "Area" yields 160 chars, not 161 as dispatch predicted — sits exactly at the cap; drop "from the SF Bay Area" yields 144 chars, not 145).
+- DONE: AC-7 page-weight regression: `wc -c index.html` worktree HEAD vs `git show main:index.html | wc -c`; confirm delta < 300 bytes.
+  HEAD = 14284 bytes; main = 14081 bytes; delta = +203 bytes. PASS (< 300).
+- DONE: AC-8 regression: `grep -c '<meta name="viewport"' index.html` returns 1; `<html lang="zh-Hant">` unchanged; `<title>ipa chiu 瞿筱葳</title>` unchanged.
+  viewport count = 1 PASS; `<html lang="zh-Hant"` present PASS; `<title>ipa chiu 瞿筱葳</title>` present PASS.
+- DONE: Surface to captain at gate: (a) the 167-char overrun with trim variants, (b) the canonical AC-3 verifier mis-parse so this can be fixed in future task definitions.
+  Both surfaced under "Captain decision required at gate" below.
+
+### Per-AC evidence
+
+- **AC-1** PASS — `grep -c 'name="description"' index.html` → `1`.
+- **AC-2** PARTIAL / NEEDS-CAPTAIN — the shipped string is verbatim `Writer, g0v.tw co-founder, documentary filmmaker. Bilingual personal site of Hsiao-wei Chiu — books, civic-tech community work, and family life from the SF Bay Area.` This is `#13`'s `og:description` verbatim per dispatch instruction. It is NOT a literal copy of any of the three ideation candidates (D-1 is 150 chars and reads "civic-tech community" without "work" and "family" without "life" and "SF Bay" without "Area"). AC-2 explicitly allows mirroring #13's `og:description`, so on its face this passes — but per AC-3 it overruns the length cap, so captain has to decide whether to keep verbatim mirror or trim. Marked PARTIAL pending captain decision.
+- **AC-3** FAIL on the ≤160-char cap. Robust extractor (`python3` regex on `<meta name="description" content="([^"]*)"`) reports 165 visible chars / 167 UTF-8 bytes. The canonical awk verifier returns `24` because the single-line Notion-export HTML has viewport's `content="` first on the line and awk's `-F'content="'` splits on the first match — `awk '{print $2}'` extracts viewport's content, not the description's. AC quality issue surfaced for ideation feedback.
+- **AC-4** PASS — `<meta name="description">` lives on line 2 inside `<head>`; `</head>` is on line 269. Description tag line number (2) < `</head>` line number (269), and the entire `<head>` block is on line 2 with no `<body>` interleaving.
+- **AC-5** PASS — adjacency to viewport meta confirmed: same line 2, `<meta name="description"` appears immediately after `<meta name="viewport" content="width=device-width, initial-scale=1.0">` with no unrelated tags between them.
+- **AC-6** SKIPPED (not applicable yet) — `grep 'property="og:description"' index.html` returns empty; `#13` has not landed on this branch, so the cross-tag identity check is moot. Per the AC text, this only applies "if #13 has shipped at the time #14 implements". When #13 merges, a regression check should confirm both `content` values are byte-identical (the implementer pre-mirrored #13's string verbatim to satisfy this in advance).
+- **AC-7** PASS — HEAD 14284 bytes − main 14081 bytes = +203 bytes (< 300).
+- **AC-8** PASS — viewport meta count = 1; `<html lang="zh-Hant"` unchanged; `<title>ipa chiu 瞿筱葳</title>` unchanged.
+
+### Captain decision required at gate
+
+1. **AC-3 length overrun.** Shipped string is 165 chars / 167 bytes; AC-3 caps at ≤160 chars. The implementer shipped verbatim per dispatch instruction (mirror #13's `og:description`). Three options for the captain:
+   - **(a) Accept the overrun.** Google's truncation point is "roughly 155–160"; 5 chars over may still render fully on desktop, and the AC threshold is conservative. Cost: AC-3 explicitly fails as written; future regression checks against the literal AC-3 would also fail.
+   - **(b) Trim "Area" → "from the SF Bay"** → exactly 160 chars / 162 bytes. Sits *at* the cap. Loses no semantic content; "SF Bay" is the colloquial form. Note: dispatch predicted 161 chars; actual is 160 (passes if cap is "≤160" inclusive).
+   - **(c) Trim "from the SF Bay Area" entirely** → 144 chars / 146 bytes. Comfortable margin under cap. Loses the geographic anchor, which D-1's ideation rationale highlighted as a deliberate feature ("mirrors the page's About Me callout").
+   If captain picks (b) or (c), this entity bounces back to implementation for a one-line edit AND #13 should be updated to match (so AC-6's identity invariant holds when #13 ships).
+
+2. **AC-3 canonical verifier is broken.** The verifier `grep 'name="description"' index.html | awk -F'content="' '{print $2}' | awk -F'"' '{print length($1)}'` mis-parses single-line HTML when any earlier `<meta>` on the same line also has a `content="` attribute (viewport here). It returns `24` (length of `width=device-width, initial-scale=1.0`) instead of the description's 165. This is a defect in the AC text, not in the implementation. Recommendation for future ideation: replace the awk recipe with a robust extractor, e.g. `python3 -c "import re,sys; m=re.search(r'<meta name=\"description\" content=\"([^\"]*)\"', open('index.html').read()); print(len(m.group(1)))"`, or alternatively normalize the HTML to one-tag-per-line (out of scope for this task — Notion-export reformat).
+
+### Summary
+
+All eight ACs reproduced against worktree HEAD c446267. AC-1, AC-4, AC-5, AC-7, AC-8 PASS with concrete evidence. AC-6 is correctly SKIPPED because #13 has not landed yet. AC-2 is technically met by the "mirror #13's og:description" clause but coupled to AC-3's failure, so flagged PARTIAL for captain. AC-3 FAILS the ≤160-char cap (actual: 165 chars / 167 bytes). Two captain decisions surfaced at gate: (1) accept the 5-char overrun vs. trim to "SF Bay" (exactly 160) vs. trim the geographic phrase entirely (144); (2) the canonical AC-3 awk verifier is broken by the single-line Notion-export HTML and should be replaced with a robust extractor in future task definitions.
