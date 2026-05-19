@@ -283,3 +283,12 @@ p#12f28c5c-1f02-809f-a021-c2c9bcc88266 > mark.highlight-gray:has(a) {
   hr { border-bottom-color: rgba(232, 230, 227, 0.12); }
 }
 
+/* #25: short emphasis bar under h3 headings (replaces full-width hr that visually coupled with the callout) */
+h3 + hr {
+  width: 40px;
+  margin: 0.5em 0 1em;
+  border: none;
+  border-bottom: 2px solid currentColor;
+  opacity: 0.6;
+}
+
