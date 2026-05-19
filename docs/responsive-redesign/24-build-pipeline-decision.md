@@ -1,15 +1,15 @@
 ---
 id: 5qka7j9pn9tc2hkq3df3k130
 title: Build pipeline decision
-status: implementation
+status: done
 source: FO upgrade suggestion
 started: 2026-05-19T21:40:00Z
-completed:
-verdict:
-score:
-worktree: .worktrees/spacedock-ensign-24-build-pipeline
+completed: 2026-05-19T23:00:44Z
+verdict: approved
+score: 1.0
+worktree:
 issue:
-pr:
+pr: 19
 mod-block:
 ---
 
