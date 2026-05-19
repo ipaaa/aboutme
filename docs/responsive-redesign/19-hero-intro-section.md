@@ -1,13 +1,13 @@
 ---
 id: hz033xpvz74ypr0prcte8gen
 title: Hero / intro section
-status: ideation
+status: implementation
 source: FO upgrade suggestion
 started: 2026-05-19T19:15:00Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-19-hero-intro-section
 issue:
 pr:
 mod-block:
@@ -424,3 +424,18 @@ Strict — implementation must not touch any of:
 ### Summary
 
 Ideation flesh-out for #19 produces three distinct hero directions with concrete markup substring edits, CSS specs using existing tokens, ten gate-shape ACs with greppable verifiers, and a viewport test plan for 375/720/1280 in Chrome+Safari with dark-mode and reduced-motion checks. Four tagline candidates surface (T-1 seed, T-2 #14 meta verbatim, T-3 bilingual side-by-side, T-4 first-person storytelling) for captain pick at the gate. Recommendation: Direction A (inline hero, portrait stays) for biggest semantic win at smallest risk; Direction B (full-bleed with portrait pulled up) is the right call only if portrait-above-fold is non-negotiable; Direction C (minimalist text hero) is the right call only if the captain wants absolute-minimum cleanup. Two captain decisions surfaced at gate: (1) pick one of A/B/C, (2) pick one of T-1/T-2/T-3/T-4 (or direct a hybrid).
+
+## Captain decision (pre-implementation)
+
+**Direction: A — Inline hero.** Replace the existing `<h1>Ipa CHIU</h1>` + bold-name `<p>` + page-top `<hr>` substring with the new `<section class="hero hero--inline">` + same `<hr>` (id kept, position kept). Portrait stays in left column. ~6 lines CSS appended to `styles.css`.
+
+**Tagline: T-3 — Bilingual side-by-side.** Inside the new hero, `<p class="hero-tagline">` carries:
+```html
+<span lang="zh-Hant">寫作。紀錄片。組織者。</span><br/><span lang="en">Writer. Documentary filmmaker. g0v.tw co-founder.</span>
+```
+
+The `<p>` itself does not need a `lang` attribute (mixed-script paragraph; explicit `lang` on the inner spans does the work). Order is zh-Hant first (matches `<html lang="zh-Hant">`), Latin on the second line via `<br/>`.
+
+### Dark mode note
+
+Direction A's CSS uses `opacity` and `currentColor` only — no color tokens. Dark mode behavior was a non-question for this direction. By the time #19 lands, #26 (remove dark mode entirely) is shipping or shipped, so the dark-mode discussion in the directions above is moot. Direction A works under either state (with or without #16's dark-mode @media block).
