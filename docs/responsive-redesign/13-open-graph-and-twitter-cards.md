@@ -1,7 +1,7 @@
 ---
 id: dbgp3nd86eqzt8j7b3gw4ppf
 title: Open Graph and Twitter Card meta tags
-status: validation
+status: implementation
 source: FO upgrade suggestion
 started: 2026-05-18T17:55:21Z
 completed:
