@@ -198,3 +198,28 @@ Fleshed out the ideation body for per-section `lang="en"` overrides on top of #0
 ### Summary
 
 Pure attribute-only additions applied to `aboutme/index.html`: 16 element-level `lang="en"` on bucket-(a) paragraphs/headings and 10 inline `<span lang="en">` wrappers around bucket-(b) English runs. Static checks confirm 26 `lang="en"` occurrences (27 total `lang=` including the unchanged root `lang="zh-Hant"`), exactly two unique lang values, and zero lang attributes on the 11 bucket-(c) ids. No HTML structure changes, no class changes, no markup restructuring.
+
+## Stage Report: validation
+
+- DONE: AC-1 — `grep -o 'lang="en"' index.html | wc -l` should return exactly 26. AC-1 separately also wants total `lang=` count (including the root `<html lang="zh-Hant">`) to return 27.
+  PASS: `grep -o 'lang="en"' index.html | wc -l` → 26; `grep -o 'lang="' index.html | wc -l` → 27. Worktree HEAD 4e23c9f.
+- DONE: AC-2 (bucket-a per-id presence) — for each of the 16 bucket-(a) Notion ids listed in the entity body, run `grep -E 'id="<id>"[^>]*lang="en"' index.html`; each MUST return exactly one match. Report any miss.
+  PASS: scripted loop over all 16 bucket-(a) ids each returned exactly `1` match. No misses.
+- DONE: AC-3 (bucket-b per-id presence) — `grep -o '<span lang="en">' index.html | wc -l` returns 10; for each of the 10 bucket-(b) ids, the span wrapping rule is satisfied (the named English run is wrapped). Spot-check a couple of them by extracting the span context.
+  PASS: span count = 10. Spot-checks: B1 `<span lang="en">(Hsiao-wei CHIU)</span>`; B3 `<span lang="en">I write stories to connect different paths…`; B5 `<span lang="en">■ Second Book: "Interview with My Father"`; B10 `<span lang="en">Co-Founded`.
+- DONE: AC-4 (bucket-c per-id absence) — for each of the 11 bucket-(c) ids listed, `grep -E 'id="<id>"[^>]*lang=' index.html` should return zero (no lang attribute on the element).
+  PASS: scripted loop over all 11 bucket-(c) ids each returned `0` matches.
+- DONE: AC-5 — `<html lang="zh-Hant">` regression check: grep for the exact string on line 2; unchanged from main.
+  PASS: `grep -n '^<html' index.html` → `2:<html lang="zh-Hant">…` exactly as in #09's baseline.
+- DONE: AC-7 — value set check: `grep -oE 'lang="[^"]+"' index.html | sort -u` returns exactly `lang="en"` and `lang="zh-Hant"` (two unique values, no extras).
+  PASS: output is exactly two lines: `lang="en"` and `lang="zh-Hant"`. No extras.
+- DONE: AC-6 / AC-8 — screen-reader voice-switch behavior is described in the test plan as VoiceOver evidence (not greppable). Mark as PASS-BY-PROXY since DevTools / VoiceOver are out of band for a static-check validator; note that the static mechanism (lang attribute presence) is what drives that behavior.
+  PASS-BY-PROXY: AC-6 (visual no-regression) and AC-8 (VoiceOver voice switching) are driven entirely by the lang-attribute mechanism, which is verified present and well-formed via AC-1/-2/-3/-7. DevTools/VoiceOver checks are out of band for a static validator.
+- DONE: Page-weight delta: `wc -c index.html` worktree HEAD vs `git show main:index.html | wc -c`. Report delta. No explicit AC cap on weight for #15, but flag if > 1KB (the implementer added 26 attribute additions; expected ~300-500 bytes).
+  Delta: 14527 − 14081 = 446 bytes added. Within the expected 300–500 byte range; no flag.
+- DONE: Any AC FAILURE → list which id missed and what was expected. Do NOT auto-fix; report only.
+  No failures to report. All static AC-1 through AC-5 and AC-7 PASS; AC-6 and AC-8 PASS-BY-PROXY.
+
+### Summary
+
+All eight ACs pass against worktree HEAD 4e23c9f. Static checks confirm exactly 26 `lang="en"` occurrences (16 element-level on the bucket-(a) ids + 10 `<span lang="en">` wrappers covering bucket-(b)), 27 total `lang=` (including the unchanged root `<html lang="zh-Hant">`), and zero `lang` attributes on any of the 11 bucket-(c) ids. Value-set is exactly `{en, zh-Hant}`. Page weight increased by 446 bytes — within the expected ~300–500 byte band for 26 attribute additions. AC-6 (visual) and AC-8 (VoiceOver) are out-of-band for a static validator and pass-by-proxy on the verified mechanism. Recommendation to captain: approve.
