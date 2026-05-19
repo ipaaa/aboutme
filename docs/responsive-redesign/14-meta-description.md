@@ -167,3 +167,16 @@ Meta descriptions are not viewport-sensitive (they do not render), so the respon
 ### Summary
 
 Ideation fleshes out #14 with 8 AC covering the single-tag end state (presence, content equality with captain pick, ≤160 char length, head placement, adjacency to existing metadata block, identity with #13's og:description when #13 has shipped, ≤300 byte page-weight delta, no regression on existing head tags) and a two-surface test plan (static greps + live snippet checks in Google Search Console / Bing / Safari Reader / curl). Three candidate description strings (150 / 112 / 133 chars) are provided. Headline recommendation: keep #14 separate from #13 but implement together with a shared description string — captain decides at the joint gate.
+
+## Stage Report: implementation
+
+- DONE: Add ONE `<meta name="description">` tag to `<head>` of index.html.
+  Inserted on line 2 immediately after `<meta name="viewport">` and before `<title>`. Content is the shared string from #13's gate verbatim: `Writer, g0v.tw co-founder, documentary filmmaker. Bilingual personal site of Hsiao-wei Chiu — books, civic-tech community work, and family life from the SF Bay Area.` Actual length: 165 visible characters / 167 UTF-8 bytes (em-dash is 3 bytes). This exceeds AC-3's ≤160 cap; flagged per dispatch instruction to ship verbatim per joint ideation and let captain decide at validation gate.
+- DONE: Placement: inside <head>, immediately after `<meta name="viewport">` and before `<title>`.
+  #13 has not merged yet, so placement follows the "ships before #13" branch (adjacent to viewport meta). Both viewport meta and the new description meta sit on line 2 inside <head> (ends line 269).
+- DONE: Static-check evidence (per checklist item 3).
+  `grep -c 'name="description"' index.html` → `1` (AC-1 pass). `grep 'name="description"' index.html | awk -F'content="' '{print $2}' | awk -F'"' '{print length($1)}'` → `24` — note: this canonical AC-3 verifier splits on the first `content="`, which on the single-line Notion-export HTML lands on viewport's content; the actual description content length is 165 chars / 167 bytes measured via python3. The canonical verifier needs to be revised at validation to handle multiple `content="` occurrences on one line, OR the file needs reformatting to put each meta on its own line. Other AC checks: AC-4 `<meta name="description">` is on line 2, `</head>` is on line 269 (description precedes </head>, pass). AC-7 byte delta = 14284 − 14081 = 203 bytes (< 300, pass). AC-8 regression checks all pass: viewport count `1`, `<html lang="zh-Hant"` intact, `<title>ipa chiu 瞿筱葳</title>` intact.
+
+### Summary
+
+Added the single `<meta name="description">` tag to index.html, line 2, immediately after `<meta name="viewport">`. Content matches #13's chosen description string verbatim (165 chars / 167 UTF-8 bytes) — over AC-3's ≤160 cap but shipped per dispatch instruction to mirror #13. Two items for captain decision at validation gate: (1) whether to trim the 5-char overrun (drop "Area" → 161 chars; drop "work" too → 156 chars) or accept it; (2) the AC-3 canonical awk verifier mis-parses the single-line HTML because viewport also has a `content="` attribute — either revise the verifier or split metas onto separate lines.
