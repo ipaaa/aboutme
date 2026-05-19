@@ -351,3 +351,18 @@ Captain picked **direction A: minimal inversion + reduced-motion blanket killswi
 - Reduced motion: blanket killswitch inside `@media (prefers-reduced-motion: reduce)` (covers any future animations/transitions even though the page currently has none).
 - Both blocks append to the end of the inline `<style>` block in `index.html`, after the existing CSS.
 - Accepted trade-off: highlight backgrounds (`.highlight-pink`, `.highlight-gray`, etc.) may look "weird" in dark mode (warm pastels on dark background). Captain accepts this; if it looks bad in practice, file a v2 follow-up entity for token-based theming (direction B).
+
+## Stage Report: implementation
+
+- DONE: Append both `@media` blocks at the end of the inline `<style>` block in `index.html`, after all existing rules (after #06's typography, after #09's `:focus-visible`, after #07's touch-target rules). Two separate commits — one for reduced-motion, one for dark-mode — so they're independently revertable (per the ideation rationale).
+  Reduced-motion block in commit ce172fa, dark-mode block in commit f69b5e0. Both inserted immediately before `</style>` at index.html:269, after the #07 touch-target `@media (min-width: 720px)` rule that ends at line 267.
+- DONE: Static-check evidence
+  All four greps return 1: `@media (prefers-reduced-motion`, `@media (prefers-color-scheme: dark)`, `background: rgb(25, 25, 27)`, `animation-duration: 0.01ms`. Page-weight delta: worktree HEAD 15312 bytes vs main 14665 bytes = +647 bytes (within the expected +500-700 range).
+- DONE: Live preview note (for the validator/captain) — DevTools Rendering panel emulation for both `prefers-color-scheme: dark` and `prefers-reduced-motion: reduce`; light-mode default rendering must be byte-identical to pre-change.
+  Both rules are wrapped in `@media` queries with no side effects in the default (light + no-reduced-motion) case, so default rendering is identical to pre-change. Validator/captain to confirm via Chrome/Safari DevTools Rendering panel emulation as specified.
+- DONE: Coordination — do NOT touch any HTML outside the `<style>` block. No new files, no JS, no <head> changes.
+  Only index.html modified, only inside the `<style>` block (insertions immediately before `</style>` at line 269). No HTML, JS, `<head>`, or new files touched.
+
+### Summary
+
+Appended two `@media` blocks at the end of the inline `<style>` block per direction A: the reduced-motion universal duration killswitch (commit ce172fa, +246 bytes) and the dark-mode minimal inversion across the 7 existing color tokens (commit f69b5e0, +401 bytes). Used the exact CSS from the entity body lines 122-148 verbatim — no redesign. Two separate commits keep them independently revertable per the ideation rationale; total page-weight delta is +647 bytes, within the expected +500-700 range.
