@@ -1,15 +1,15 @@
 ---
 id: baf9g3k7scdr13y5tf2pwheq
 title: Remove prefers-color-scheme dark mode (light mode only)
-status: implementation
+status: done
 source: captain feedback — dark mode confusing on system-dark machines
 started: 2026-05-19T19:25:00Z
-completed:
-verdict:
-score:
-worktree: .worktrees/spacedock-ensign-26-remove-dark-mode
+completed: 2026-05-19T20:00:04Z
+verdict: approved
+score: 1.0
+worktree:
 issue:
-pr:
+pr: 17
 mod-block:
 ---
 
