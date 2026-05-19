@@ -105,3 +105,28 @@ After removal, the file ordering at the end is: (existing rules) → `@media (pr
 If captain later wants visitor-controlled dark mode (i.e., a UI toggle that doesn't auto-follow the OS), that becomes a separate task: would need a small `<button>` in the page, `localStorage` for persistence, and CSS that responds to a class/attribute on `<html>` (or `:root[data-theme="dark"]`) rather than `@media`. Out of scope for #26 — the current scope is strictly "no dark mode at all".
 
 (Filed from captain feedback during #19 ideation. #16's dark-mode work is being surgically reverted via this entity; #16 itself stays `done` in audit history with its original verdict.)
+
+## Stage Report: implementation
+
+- DONE: Remove the dark-mode block + any associated comment/separator.
+  Deleted the 8-line `@media (prefers-color-scheme: dark)` block and its preceding blank-line separator from `styles.css`. No introducing comment existed. `grep -c 'prefers-color-scheme' styles.css` → 0. `grep -c 'rgb(25, 25, 27)' styles.css` → 0. `grep -c 'rgb(232, 230, 227)' styles.css` → 0. `grep -c 'rgba(155, 155, 152, 1)' styles.css` → 0. `grep -c 'rgba(45, 45, 48, 1)' styles.css` → 0. `grep -c 'rgba(232, 230, 227, 0.12)' styles.css` → 0.
+- DONE: Reduced-motion block preserved.
+  `grep -c 'prefers-reduced-motion' styles.css` → 1. `grep -c 'animation-duration: 0.01ms' styles.css` → 1. `grep -c 'transition-duration: 0.01ms' styles.css` → 1.
+- DONE: #25 h3+hr rule preserved.
+  `grep -c '^h3 + hr {' styles.css` → 1. `grep -c 'border-bottom: 2px solid currentColor' styles.css` → 1.
+- DONE: No markup edits.
+  `git diff main -- index.html` → empty. `wc -c index.html` worktree HEAD = 10733 == `git show main:index.html | wc -c` = 10733.
+- DONE: Single deletion hunk in styles.css.
+  `git diff main -- styles.css` shows one deletion hunk (the 8-line `@media (prefers-color-scheme: dark)` block + preceding blank-line separator), zero additions, no edits to other rules.
+- DONE: Page-weight check.
+  `wc -c styles.css` worktree HEAD = 5125 (was 5526 on main; delta = −401 bytes). Outside the ±15-byte band around the captain's ~5215 estimate, but the deletion content matches the captain-specified block exactly — the estimate was approximate.
+- DONE: Local smoke test.
+  Ran `python3 -m http.server 8005` in worktree. `curl -sI http://localhost:8005/styles.css` → HTTP/1.0 200 OK, Content-type: text/css, Content-Length: 5125 (matches `wc -c styles.css`). Server stopped.
+- DONE: Single commit.
+  SHA 4437e88, message `#26: remove @media (prefers-color-scheme: dark) block from styles.css`, files: only `styles.css` (1 file changed, 9 deletions, 0 additions).
+- DONE: Append `## Stage Report: implementation` to entity file with DONE entries per checklist item, grep/wc numbers, and the commit SHA.
+  This report.
+
+### Summary
+
+Surgically removed the `@media (prefers-color-scheme: dark)` block (8 lines + 1 leading blank separator) from `styles.css`. Reduced-motion `@media` block and #25 `h3 + hr` rule both preserved verbatim. Single commit on `spacedock-ensign/26-remove-dark-mode` (SHA 4437e88), no markup edits, smoke test passed. One minor note: the resulting file size (5125 bytes, −401 from main) is outside the captain's approximate ±15-byte band around 5215, but the deletion matches the captain-specified block exactly — the original estimate was an approximation of the byte count.
