@@ -1,7 +1,7 @@
 ---
 id: e4hr2mb81n0e7gkxq7e1kp54
 title: prefers-reduced-motion and prefers-color-scheme dark mode
-status: implementation
+status: validation
 source: FO upgrade suggestion
 started: 2026-05-18T17:55:21Z
 completed:
