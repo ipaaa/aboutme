@@ -1,13 +1,13 @@
 ---
 id: bf9g4z3axbyv0vzarvdecxtd
 title: Extract inline CSS to external styles.css
-status: ideation
+status: implementation
 source: FO upgrade suggestion (revisits archived #03)
 started: 2026-05-19T02:42:00Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-17-extract-inline-css
 issue:
 pr:
 mod-block:
