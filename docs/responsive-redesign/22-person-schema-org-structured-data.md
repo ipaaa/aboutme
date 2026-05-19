@@ -1,9 +1,9 @@
 ---
 id: g3bp0nwbecn8ex29mntqagjh
 title: Person schema.org structured data
-status: backlog
+status: ideation
 source: FO upgrade suggestion
-started:
+started: 2026-05-19T23:05:00Z
 completed:
 verdict:
 score:
