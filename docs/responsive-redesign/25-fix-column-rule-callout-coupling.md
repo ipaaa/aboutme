@@ -109,3 +109,26 @@ Specifically targets the rules that sit directly under section headings. The top
 - Any new task entity.
 
 (Filed from captain visual-bug report during the #18 ideation gate. #18 was reset to backlog with ideation report retained.)
+
+## Stage Report: implementation
+
+- DONE: Append the new rule to `styles.css` (with mandated comment + leading blank line)
+  Appended after the `@media (prefers-color-scheme: dark)` block; comment reads `/* #25: short emphasis bar under h3 headings (replaces full-width hr that visually coupled with the callout) */`.
+- DONE: Verify the rule landed verbatim
+  `grep -c '^h3 + hr {' styles.css` → 1; `grep -A 6 '^h3 + hr {' styles.css` → exact 7-line block; `grep -c 'border-bottom: 2px solid currentColor' styles.css` → 1.
+- DONE: Verify nothing else changed
+  `git diff main -- styles.css` → one additive hunk, 9 insertions, 0 deletions; `git diff main -- index.html` → empty; `wc -c index.html` = 11503 = `git show main:index.html | wc -c`.
+- FAILED: Verify page-weight delta (`wc -c styles.css` increase ≤ 200 bytes)
+  Delta is 236 bytes (5526 − 5290). The captain-picked rule alone is ~115 bytes, but the mandated comment line in checklist item 1 (`/* #25: short emphasis bar... */`) adds ~108 bytes plus the blank-line separator. The 200-byte budget in AC-6/item-4 and the mandatory comment in item-1 are mutually inconsistent; satisfied the comment requirement and overshot the byte budget by 36 bytes. Flagging for captain/FO judgment rather than dropping the comment or rewriting the rule.
+- FAILED: Verify all three `h3 + hr` pairs in markup are present (`grep -c '</h3><hr' index.html` should return `3`)
+  Actual count is **4**, not 3. There is a fourth `<h3>Projects</h3><hr/>` pair in the right column (after the callout) that the spec body did not enumerate. The captain-picked selector `h3 + hr` will match all 4 uniformly — the fix still applies the short-bar treatment to every section heading on the page, which is consistent with the spec's stated goal of "all section-heading rules on the page". The page-top `<hr>` (after the bilingual name `<p>`) is NOT preceded by an `<h3>` and remains unmatched, as intended. Flagging the count divergence so captain can confirm the broader application is desired (it almost certainly is).
+- DONE: Local smoke test (python3 -m http.server 8003)
+  `curl -sI http://localhost:8003/styles.css` → `HTTP/1.0 200 OK`, `Content-type: text/css`, `Content-Length: 5526` (matches `wc -c styles.css`). `curl -sI http://localhost:8003/` → `HTTP/1.0 200 OK`, `Content-type: text/html`, `Content-Length: 11503`. Server stopped before signaling done.
+- DONE: Single commit (`#25: shorten h3+hr rules to 40px emphasis bars (decouple from callout)`)
+  SHA `2402ba1` on branch `spacedock-ensign/25-fix-column-rule-callout-coupling`; only `styles.css` changed (1 file, 9 insertions).
+- DONE: Append `## Stage Report: implementation` to entity file
+  This section.
+
+### Summary
+
+Appended the captain-picked `h3 + hr` rule (40px emphasis bar, 2px currentColor, opacity 0.6) verbatim to the end of `styles.css`, with the mandated `/* #25: ... */` comment. Single commit `2402ba1`, only `styles.css` touched, `index.html` untouched. Two FAILED items flagged for captain judgment, neither blocking: (1) the byte-delta budget of ≤200 is exceeded by 36 bytes because the mandated comment was not accounted for in AC-6's ~115-byte estimate; (2) the markup actually has 4 `</h3><hr` pairs, not 3 — there's an additional "Projects" section heading the spec body missed, and the selector matches it too. Local server smoke test passes on port 8003 with matching Content-Length headers.
