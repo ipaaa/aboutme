@@ -1,9 +1,9 @@
 ---
 id: ac3nsb8h6p1ne7rkpvpv1d89
 title: Visual polish pass
-status: backlog
+status: ideation
 source: FO upgrade suggestion
-started:
+started: 2026-05-19T04:20:00Z
 completed:
 verdict:
 score:
