@@ -185,3 +185,16 @@ Strictly attribute additions, nothing else. Excluded explicitly:
 ### Summary
 
 Fleshed out the ideation body for per-section `lang="en"` overrides on top of #09's `<html lang="zh-Hant">` baseline. The concrete edit plan is 16 element-level attributes + 10 inline spans = 26 new `lang="en"` occurrences, with each target named by its Notion stable `id` and the English run identified. Key decisions: leave Chinese-dominant paragraphs with embedded proper nouns ("g0v", "Discovery") untouched per WCAG 3.1.2 proper-noun guidance to avoid over-fragmenting AT navigation; treat the wrapper paragraphs around "Building Narrative" / "Building Community" as bucket-(b) (inline span on just the heading) rather than bucket-(a), because they enclose nested mixed-language children that would inherit the wrong language. AC-1 gives the implementer a single greppable target number; AC-8 names the voice-switch end-state for browser/AT validation.
+
+## Stage Report: implementation
+
+- DONE: Apply the 16 element-level `lang="en"` additions to the paragraphs/headings named in the entity body's bucket (a) list, addressed by their stable Notion ids. Each addition is `id="..."[other attrs]` → `id="..." lang="en"[other attrs]`. No other attribute changes.
+  Per-id grep loop: every one of the 16 bucket-(a) ids returns exactly one `id="<id>"[^>]*lang="en"` match. No class attributes or other attributes were modified.
+- DONE: Apply the 10 inline `<span lang="en">…</span>` wrappers to the English passages named in bucket (b). Wrap ONLY the contiguous English run; leave the Chinese siblings outside the span.
+  `grep -o '<span lang="en">' index.html | wc -l` returns 10. Each wrapper encloses only the named English run (B1 parenthetical, B2 first three lines before the `<br/><br/>` Chinese mirror, B3 callout English half before `<br/><br/>` mirror, B4/B8 wrap the existing inline span without altering it, B5 `■ Second Book` heading only, B6 IDystopia English sentence, B7 `■ Microwave Art Festival HK`, B9 `■ g0v Civic Tech Grant`, B10 English half of the community paragraph before the `<br/>` mirror).
+- DONE: Static-check evidence: `grep -o 'lang="en"' index.html | wc -l` should return 26 (16 elements + 10 spans); `grep -oE 'lang="[^"]+"' index.html | sort -u` should return exactly two unique lines (`lang="en"` and `lang="zh-Hant"`); bucket-(c) paragraphs (per the entity body's list) must NOT have a lang attribute added.
+  Counts: `lang="en"` → 26, total `lang="` → 27, `<span lang="en">` → 10, unique values → `lang="en"` and `lang="zh-Hant"`. All 11 bucket-(c) ids return 0 lang-attribute matches. Root `<html lang="zh-Hant">` on line 2 unchanged.
+
+### Summary
+
+Pure attribute-only additions applied to `aboutme/index.html`: 16 element-level `lang="en"` on bucket-(a) paragraphs/headings and 10 inline `<span lang="en">` wrappers around bucket-(b) English runs. Static checks confirm 26 `lang="en"` occurrences (27 total `lang=` including the unchanged root `lang="zh-Hant"`), exactly two unique lang values, and zero lang attributes on the 11 bucket-(c) ids. No HTML structure changes, no class changes, no markup restructuring.
