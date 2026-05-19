@@ -178,3 +178,18 @@ All six ACs PASS against worktree HEAD b8a0806. Three assets shipped (favicon-32
 **Send completion signal** to team-lead when done:
 
     SendMessage(to="team-lead", message="Done: Add favicon re-implementation cycle 1 (direction 2, portrait crop) complete. Report appended to /Users/ipa/Documents/ipa Document/99_Claude spacedock folder/Personal writing/ipachiu/aboutme/.worktrees/spacedock-ensign-12-add-favicon/docs/responsive-redesign/12-add-favicon.md.")
+
+### Re-implementation (cycle 1)
+
+- DONE: Delete cycle 0 wordmark assets (`favicon.svg` only — the two PNG filenames are reused for the portrait crop).
+  `git rm favicon.svg` and the SVG `<link>` removed from `<head>`; PNGs overwritten with portrait crop output.
+- DONE: Generate portrait-crop favicons from `selfportrait.png` at repo root (32x32 and 180x180 RGBA PNG).
+  Source: `selfportrait.png` (745x746 RGBA). Crop box `(left=300, top=150, right=580, bottom=430)` → 280x280 square covering the face's eye/nose/lips/cheek band, chosen by sliding a window over the image to find the densest dark-linework region (centered roughly on the profile features) and widening it to include the pink-cheek pigment for color contrast. PIL `Image.resize(..., LANCZOS)` to 32x32 and 180x180. `file favicon-32.png` → `PNG image data, 32 x 32, 8-bit/color RGBA`. `file favicon-180.png` → `PNG image data, 180 x 180, 8-bit/color RGBA`.
+- DONE: Update head markup — remove SVG `<link>`, keep both PNG links.
+  Line 2 of `index.html` now reads `<title>…</title><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png"><style>`. `grep -c 'rel="icon"' index.html` → 1, `grep -c 'rel="apple-touch-icon"' index.html` → 1, `grep -c 'image/svg+xml' index.html` → 0.
+- DONE: 16x16 legibility spot-check via `sips -z 16 16 favicon-32.png --out /tmp/fav-16.png`.
+  Output is a 16x16 RGBA PNG. At 16x16 the discrete profile lines dissolve (as the ideation note flagged for portraits), but the warm pink/orange wash on the cream paper texture remains visually distinctive and clearly non-default — recognizable as "a face / a person" by color signature rather than feature. At 32x32 (browser tab strip on Retina) the eye, nose-bridge, and lips are still readable. The 180x180 apple-touch-icon shows the full upper-face crop with eye, nose, two lips, jawline, and pink cheek wash intact.
+
+### Summary
+
+Switched from direction 3 (ip wordmark) to direction 2 (portrait crop). Removed `favicon.svg` (direction 2 is not vector-friendly so AC5 is dropped for this cycle) and the corresponding `<link rel="icon" type="image/svg+xml">` from `<head>`. Regenerated `favicon-32.png` and `favicon-180.png` from `selfportrait.png` using PIL with a 280x280 crop covering the eye/nose/lips/cheek band, chosen by sliding a window to maximize dark-linework density. Verified the 16x16 downscale per the feedback brief: features dissolve as expected for a watercolor portrait at that size, but the pink/orange color signature stays distinctive enough to read as "not the default globe."
