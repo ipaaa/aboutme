@@ -283,3 +283,15 @@ h3 + hr {
   opacity: 0.6;
 }
 
+/* #19 Direction A — inline hero */
+.hero--inline {
+  margin: 0 0 1.25em;
+}
+.hero--inline h1 {
+  margin-top: 0;
+}
+.hero-tagline {
+  margin-top: 0.5em;
+  opacity: 0.75;
+}
+
