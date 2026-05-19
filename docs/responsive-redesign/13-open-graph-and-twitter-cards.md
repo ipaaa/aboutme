@@ -217,3 +217,69 @@ Meta tags are not viewport-sensitive (they don't render to the page), so the usu
 ### Summary
 
 Ideation fleshed out the OG / Twitter Card task with 15 ACs covering every tag (og + twitter, ~18 tags including alts and locale alternate), three candidate titles, three candidate descriptions, an image-strategy recommendation (reuse `selfportrait.png` v1, follow-up entity for a dedicated 1200×630 card), and a two-surface test plan (static greps + live previews on Facebook / X / iMessage / Slack / Substack / Mastodon). Key decisions deferred to captain at gate: title pick, description pick, and whether to fold #14 (meta description) into #13's scope or keep them as separate entities sharing one description string (recommended: keep separate, share copy).
+
+## Stage Report: implementation
+
+- DONE: Add the contiguous OG + Twitter Card block to <head> in index.html per the entity body's HTML structure section. Use Title candidate 3 (`Ipa Chiu 瞿筱葳`) for og:title and twitter:title. Use Description candidate 1 for og:description and twitter:description.
+  Inserted 18 contiguous `<meta>` tags between the existing `<meta name="viewport">` and `<title>` in `index.html`; og:title = `Ipa Chiu 瞿筱葳`, og:description = description candidate 1 (167 chars).
+- DONE: AC-1 through AC-12 verified by grep — og:title, og:description, og:type=profile, og:url, og:image (selfportrait.png), og:image:alt, og:locale=zh_TW, og:locale:alternate=en_US, og:site_name=ipachiu.me, twitter:card=summary_large_image, twitter:site=@ipa, twitter:creator=@ipa, twitter:title, twitter:description, twitter:image, twitter:image:alt; AC-12 tags contiguous in <head>.
+  All 9 og:* + 2 profile:* + 7 twitter:* tags present with exact values from spec; greps return: `og:type="profile"`, `og:url="https://ipachiu.me/"`, `og:site_name="ipachiu.me"`, `og:locale="zh_TW"`, `og:locale:alternate="en_US"`, `twitter:card="summary_large_image"`, `twitter:site="@ipa"`, `twitter:creator="@ipa"`, both image URLs = `https://ipachiu.me/selfportrait.png`; block is one contiguous run (AC-12).
+- DONE: Static-check evidence — `grep -c 'property="og:' index.html` (expect 9+), `grep -c 'name="twitter:' index.html` (expect 6+), `wc -c index.html` before/after to verify AC-15 (<2KB regression).
+  `grep -oc` counts: 9 og:* matches, 7 twitter:* matches (single-line file, so `grep -c` line-count returns 1 — used `grep -o | wc -l` for true occurrence count). `wc -c index.html` before = 13181, after = 14496, delta = 1315 bytes (well under 2 KB AC-15 cap). Lang attribute unchanged (`<html lang="zh-Hant"`).
+
+### Summary
+
+Added a contiguous block of 18 social-preview meta tags (9 Open Graph, 2 profile:*, 7 Twitter Card) to `<head>` in `index.html` between the existing viewport meta and `<title>`. Used captain-chosen Title candidate 3 (`Ipa Chiu 瞿筱葳`) and Description candidate 1 (English-led role + Bay Area anchor, 167 chars). Page weight grew by 1315 bytes (under the 2 KB AC-15 cap); no other markup touched, so #12's favicon work and #14's meta-description work have non-overlapping insertion points still open in `<head>`. Live-preview validation (Facebook debugger, X Card Validator, iMessage/Slack/Substack/Mastodon paste tests) is the next stage's job.
+
+## Stage Report: validation
+
+- DONE: Each of AC-1 through AC-12 reproduced against worktree HEAD with PASS/FAIL and concrete evidence. Static AC (greppable) should pass directly; AC-13/14 (FB / X validators) require live deployed URL, so report as PASS-BY-PROXY with a note that live validation runs post-merge.
+  AC-1 PASS: `grep -c 'property="og:title"'` = 1, content = `Ipa Chiu 瞿筱葳` (Title candidate 3). AC-2 PASS: count = 1, content matches Description candidate 1, length = 167 chars (≤200). AC-3 PASS: `og:type content="profile"`. AC-4 PASS: `og:url content="https://ipachiu.me/"`. AC-5 PASS: both `og:image` and `twitter:image` = `https://ipachiu.me/selfportrait.png`. AC-6 PASS: both alts present, count = 1 each, both = `Portrait of Ipa Chiu / 瞿筱葳` (contains "Ipa Chiu" and "瞿筱葳"). AC-7 PASS: `og:locale="zh_TW"`, `og:locale:alternate="en_US"`. AC-8 PASS: `og:site_name="ipachiu.me"`. AC-9 PASS: `twitter:card="summary_large_image"`. AC-10 PASS: both `twitter:site` and `twitter:creator` = `@ipa`. AC-11 PASS: `twitter:title` = `Ipa Chiu 瞿筱葳` (matches AC-1); `twitter:description` matches AC-2 verbatim. AC-12 PASS: ordered scan of head tags shows the 18 OG/profile/twitter tags appear as one contiguous run after `<meta name="viewport">` and before `<title>`, no unrelated tags interleaved. AC-13 PASS-BY-PROXY: Facebook Sharing Debugger requires deployed URL; deferred to post-merge live check. AC-14 PASS-BY-PROXY: X Card Validator requires deployed URL; deferred to post-merge live check.
+- DONE: AC-2 length check independently re-run: extract `og:description` content value and report its char length (expect ≤ 200; implementer reported 167).
+  Re-extracted via `grep -o 'property="og:description" content="[^"]*"' | sed 's/.*content="//;s/"$//' | awk '{print length}'` = 167 chars. Matches implementer report; ≤200 cap satisfied.
+- DONE: AC-15 page-weight regression: re-compute `wc -c index.html` against the pre-strip baseline (from git show main:index.html | wc -c), confirm delta < 2048 bytes.
+  Worktree `wc -c index.html` = 14496; `git show main:index.html | wc -c` = 13181; delta = 1315 bytes (<2048). Under AC-15 cap.
+
+### Summary
+
+All static AC (AC-1 through AC-12, AC-15) PASS against worktree HEAD 93bcc86 — 18 contiguous social-preview meta tags inserted between `<meta name="viewport">` and `<title>` with exact spec values; `og:description` length re-verified at 167 chars; page weight delta 1315 bytes under the 2 KB cap; `<html lang="zh-Hant">` unregressed. AC-13 (Facebook Sharing Debugger) and AC-14 (X Card Validator) are PASS-BY-PROXY since both require a live deployed URL — flag for post-merge live-preview pass on Facebook, X, iMessage, Slack, Substack, Mastodon, with attention to 1.91:1 center-crop of the square `selfportrait.png` (the documented trigger for a follow-up dedicated-social-card entity). Gate approval: advance to `done`.
+
+## Stage Report: implementation (cycle 1)
+
+- DONE: Edit `index.html`: replace the `content="..."` value of TWO existing tags (`og:description` and `twitter:description`) with the new 144-char string; do not touch the other 16 tags.
+  Replaced both `content` values with the captain-provided 144-char string verbatim; spot-check enumeration confirms the other 9 og:* + 2 profile:* + 7 twitter:* tags are unchanged (og:title=`Ipa Chiu 瞿筱葳`, og:type=`profile`, og:url=`https://ipachiu.me/`, og:image=`https://ipachiu.me/selfportrait.png`, og:image:alt=`Portrait of Ipa Chiu / 瞿筱葳`, og:locale=`zh_TW`, og:locale:alternate=`en_US`, og:site_name=`ipachiu.me`, twitter:card=`summary_large_image`, twitter:site=`@ipa`, twitter:creator=`@ipa`, twitter:title=`Ipa Chiu 瞿筱葳`, twitter:image=`https://ipachiu.me/selfportrait.png`, twitter:image:alt=`Portrait of Ipa Chiu / 瞿筱葳`, profile:first_name=`Hsiao-wei`, profile:last_name=`Chiu`).
+- DONE: Re-run AC-2 — `og:description` length via python3 regex; expect 144 chars / 146 bytes (well under ≤200 cap; also under ≤160 SERP cap shared with #14).
+  Python3 regex extraction reports `len = 144` chars, `len(utf-8) = 146` bytes — PASS, under both the ≤200 OG cap and the ≤160 SERP cap.
+- DONE: Re-run AC-11 — `twitter:description` content matches `og:description` byte-for-byte.
+  Python3 `og.encode('utf-8') == tw.encode('utf-8')` → True; both = 146 bytes — PASS.
+- DONE: Re-run AC-15 — `wc -c index.html` worktree HEAD vs `git show main:index.html | wc -c`; confirm delta < 2048 bytes.
+  Worktree `wc -c index.html` = 15354; `git show main:index.html | wc -c` = 14665; delta = 689 bytes (<2048). PASS. (Main moved since cycle 0 — favicon PR #10 + lang PR #11 merged — so baseline is larger than cycle 0's 13181; the trim itself shrank the file by 46 bytes vs cycle 0's 14496.)
+- DONE: Spot-check that the other 9 og:* + 7 twitter:* tags are unchanged.
+  Enumerated via grep; all 16 non-description tags preserve their cycle-0 values verbatim, no extras present, no tags removed.
+- DONE: Commit on branch `spacedock-ensign/13-open-graph-and-twitter-cards` with message `#13 cycle 1: trim og:description and twitter:description to 144 chars per captain feedback`.
+  Committed (see git log for SHA).
+
+### Summary
+
+Cycle 1 trimmed `og:description` and `twitter:description` from the 167-char cycle-0 string to the captain-provided 144-char / 146-byte string by dropping the trailing " from the SF Bay Area" geographic phrase, aligning #13 with #14's same-string trim so AC-6's identity invariant holds across both entities. All 16 other meta tags untouched. AC-2 (≤200 / ≤160), AC-11 (byte-equal), and AC-15 (<2 KB delta, actual 689 bytes vs current main) all PASS; ready for re-validation gate.
+
+## Stage Report: validation (cycle 1)
+
+- DONE: Re-run AC-1 (og:title), AC-3 (og:type=profile), AC-4 (og:url), AC-5 (og:image + twitter:image), AC-6 (og:image:alt + twitter:image:alt), AC-7 (og:locale + alternate), AC-8 (og:site_name), AC-9 (twitter:card), AC-10 (twitter:site/creator), AC-11 (twitter:title), AC-12 (contiguous block).
+  All PASS against HEAD ee81a06. AC-1: count=1, `Ipa Chiu 瞿筱葳`. AC-3: `profile`. AC-4: `https://ipachiu.me/`. AC-5: both = `https://ipachiu.me/selfportrait.png`. AC-6: both counts=1, both = `Portrait of Ipa Chiu / 瞿筱葳`. AC-7: `zh_TW` + alternate `en_US`. AC-8: `ipachiu.me`. AC-9: `summary_large_image`. AC-10: both = `@ipa`. AC-11 (title half): twitter:title = `Ipa Chiu 瞿筱葳` matches og:title. AC-12: single-line `<head>` shows the 18 og/profile/twitter tags as one contiguous run between `<meta name="viewport">` and `<title>` — no unrelated tags interleaved.
+- DONE: Re-run AC-2 with robust python3 extractor — `og:description` content length is 144 chars / 146 bytes; content matches the verbatim string above byte-for-byte.
+  python3 regex extract: `len chars: 144`, `len bytes: 146`, `match expected: True`. Value matches the captain-provided string verbatim (`Writer, g0v.tw co-founder, documentary filmmaker. Bilingual personal site of Hsiao-wei Chiu — books, civic-tech community work, and family life.`).
+- DONE: Re-run AC-11 — `twitter:description` content matches `og:description` byte-for-byte.
+  python3 utf-8 compare: `match: True | 146 vs 146`. PASS.
+- DONE: AC-15 page-weight regression — `wc -c index.html` worktree HEAD vs `git show main:index.html | wc -c`.
+  worktree=15354, main=14665, delta=+689 bytes — well under the 2048-byte cap. Main moved up since cycle 0 (favicon PR #10 + lang PR #11 merged, +1484 bytes), so absolute worktree size grew while the #13 contribution shrank by 46 bytes vs cycle 0 (cycle 0 delta was 1315 bytes; cycle 1 is 689). PASS.
+- SKIPPED: AC-13 (Facebook Sharing Debugger) and AC-14 (X Card Validator) remain PASS-BY-PROXY — require live deployed URL, deferred to post-merge live check.
+  Both validators fetch by public URL; static worktree cannot exercise them. Carry to post-merge live-preview pass (Facebook, X, iMessage, Slack, Substack, Mastodon) with attention to 1.91:1 center-crop of `selfportrait.png`.
+- DONE: Spot-check by grep that the other 16 tags (9 og:* + 2 profile:* + 7 twitter:* minus the 2 descriptions) are unchanged from cycle 0 (their exact values should still grep cleanly).
+  Enumerated: og:type=`profile`, og:site_name=`ipachiu.me`, og:title=`Ipa Chiu 瞿筱葳`, og:url=`https://ipachiu.me/`, og:image=`https://ipachiu.me/selfportrait.png`, og:image:alt=`Portrait of Ipa Chiu / 瞿筱葳`, og:locale=`zh_TW`, og:locale:alternate=`en_US`, profile:first_name=`Hsiao-wei`, profile:last_name=`Chiu`, twitter:card=`summary_large_image`, twitter:site=`@ipa`, twitter:creator=`@ipa`, twitter:title=`Ipa Chiu 瞿筱葳`, twitter:image=`https://ipachiu.me/selfportrait.png`, twitter:image:alt=`Portrait of Ipa Chiu / 瞿筱葳`. All 16 unchanged from cycle 0; no extras, none removed.
+- DONE: Final recommendation to gate: should be approve to done if all of the above PASS.
+  All static AC PASS against HEAD ee81a06; AC-13/14 remain PASS-BY-PROXY for post-merge live check. Recommend **approve to done**.
+
+### Summary
+
+Cycle-1 re-validation against worktree HEAD `ee81a06` confirms the captain-requested trim: `og:description` and `twitter:description` are now 144 chars / 146 bytes and match the captain-provided verbatim string byte-for-byte; the two values are also byte-identical to each other (AC-11). All other 16 social-preview tags (9 og:*, 2 profile:*, 7 twitter:*) are unchanged from cycle 0 and still PASS. Page weight delta vs current main is +689 bytes (well under the 2 KB AC-15 cap; the trim itself shrank the file by 46 bytes vs cycle 0, while main moved +1484 bytes from PR #10 favicon and PR #11 lang merges). AC-13 (Facebook Sharing Debugger) and AC-14 (X Card Validator) remain PASS-BY-PROXY and deferred to post-merge live check. Gate recommendation: **approve to done**.
