@@ -1,15 +1,15 @@
 ---
 id: s0285prgbfp1hhyh6kkeddmz
 title: Shorten section-heading rules so they don't visually couple with the callout
-status: implementation
+status: done
 source: captain visual-bug report during #18 ideation gate
 started: 2026-05-19T04:50:00Z
-completed:
-verdict:
-score:
-worktree: .worktrees/spacedock-ensign-25-fix-column-rule-callout-coupling
+completed: 2026-05-19T19:10:48Z
+verdict: approved
+score: 1.0
+worktree:
 issue:
-pr:
+pr: 16
 mod-block:
 ---
 
