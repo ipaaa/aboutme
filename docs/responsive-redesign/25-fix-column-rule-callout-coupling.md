@@ -176,3 +176,30 @@ Reproduced all 7 acceptance criteria against worktree HEAD `83902b2` (with imple
 ### Summary
 
 Applied both captain-requested markup edits to `index.html` line 2 in two surgical commits (`824ee48`, `2ae69d0`). Social row reduced from 5 links (FACEBOOK | MEDIUM | SUBSTACK | MASTODON | TWITTER) to 3 (FACEBOOK | SUBSTACK | MASTODON); the 7 `<meta name="twitter:..." ...>` tags removed from `<head>` while OG/profile tags stay contiguous and unchanged. `styles.css` not touched this cycle. Page weight dropped 770 bytes (11503 → 10733). One small spec/reality mismatch worth noting: the checklist's `grep -c 'property="og:'` returning "9" is unreachable because the file is single-line Notion-flattened HTML — line-based grep -c maxes out at 1; occurrence count (`grep -o ... | wc -l`) does return 9 unchanged, which matches the spec's intent.
+
+## Stage Report: validation (cycle 1)
+
+- DONE: Cycle-0 CSS rule still intact (regression guard): `grep -c '^h3 + hr {' styles.css` → 1; `git diff main -- styles.css` shows exactly the cycle-0 additive hunk
+  `grep -c '^h3 + hr {' styles.css` returns 1. `git diff main -- styles.css` is byte-identical to cycle-0 validation: the single additive `@@ -283,3 +283,12 @@` hunk (comment + 7-line block + trailing blank), no cycle-1 CSS deltas. Sanity confirmed via `git diff 2402ba1 -- styles.css` returning empty.
+- DONE: AC-8 social row count: `grep -o 'medium.com' index.html | wc -l` → 0; `grep -o 'x.com/ipa' index.html | wc -l` → 0; first three https hrefs match
+  medium.com occ = 0, x.com/ipa occ = 0. `grep -oE 'href="https://[^"]+"' index.html | head -3` returns in order: `https://facebook.com/ipa.chiu/`, `https://ipachiu.substack.com/`, `https://g0v.social/@ipa` — exactly the captain-picked 3-link order. Bonus: facebook.com/ipa.chiu occ = 1, ipachiu.substack.com occ = 1, g0v.social occ = 1.
+- DONE: AC-9 twitter meta removed: `grep -o 'twitter:' index.html | wc -l` → 0; og count 9; profile count 2; description line count 1
+  twitter: occ = 0 (was 7 on main: card, site, creator, title, description, image, image:alt — confirmed in diff); `grep -o 'property="og:'` occ = 9 (unchanged from #13); `grep -o 'property="profile:'` occ = 2 (unchanged from #13); `grep -c '<meta name="description"'` line count = 1.
+- DONE: AC-10 OG block contiguity: 9 og:* + 2 profile:* tags appear as one contiguous run after viewport/description and before `<title>`; no twitter:* or unrelated meta interleaved
+  `grep -oE '<meta (name|property)="[^"]+"' index.html | head -15` returns in order: viewport, description, og:type, og:site_name, og:title, og:description, og:url, og:image, og:image:alt, og:locale, og:locale:alternate, profile:first_name, profile:last_name. That is exactly viewport → description → 9 og:* → 2 profile:* with no gaps. The `<title>` tag immediately follows (verified by diff hunk). No twitter:* in the list.
+- DONE: AC-11 page weight: 10733 vs 11503 on main = −770 bytes
+  `wc -c index.html` worktree HEAD = 10733; `git show main:index.html | wc -c` = 11503; delta = **−770 bytes** (matches implementer's reported value exactly).
+- DONE: AC-12 no CSS edits cycle 1: `git diff 2402ba1 -- styles.css` returns empty; `git log --oneline --name-only main..HEAD -- styles.css` shows only `2402ba1`
+  Diff against cycle-0 CSS commit `2402ba1` returns empty. The file-scoped log lists only `2402ba1 #25: shorten h3+hr rules to 40px emphasis bars (decouple from callout)` — cycle-1 commits `824ee48` and `2ae69d0` do not appear in the styles.css history.
+- DONE: Markup change scope: `git diff main..HEAD -- index.html` shows exactly THREE classes of change with no additions
+  Single hunk on line 2. Class 1: removal of 7 contiguous `<meta name="twitter:...">` tags between `profile:last_name` and `<title>` (card, site, creator, title, description, image, image:alt). Class 2: removal of MEDIUM `<mark class="highlight-gray"><a href="https://medium.com/@ipaway">MEDIUM</a></mark>` plus its trailing ` | ` separator mark. Class 3: removal of TWITTER `<mark class="highlight-gray"><a href="https://x.com/ipa">TWITTER</a></mark>` plus its leading ` | ` separator mark. Zero `+` lines (the two visible `+` markers in the diff represent the modified line replacing the original — the bodies are strictly shorter; no additive content).
+- DONE: Other links untouched: mailto/g0v.tw/title/favicon/stylesheet occurrences preserved
+  mailto:ipawei@gmail.com occ = 1; mailto:ipawei@proton.me occ = 1; `href="https://g0v.tw` occ = 5 (≥1 satisfied); `<title>ipa chiu` occ = 1; favicon-32.png occ = 1; `rel="stylesheet" href="styles.css"` occ = 1. All using `grep -o … | wc -l` per the corrected single-line-HTML protocol.
+- SKIPPED: Visual sanity (Test plan items 7-10 + new social row visual) — PASS-BY-PROXY pending captain confirmation
+  FO is running the preview on port 8004 for captain's eye-diff. Static mechanism (correct three remaining anchors in correct order, no markup adjacency artifacts in the diff, separators sit cleanly between the three remaining marks) is what drives the visual result; deferring 1280×800 desktop, <720px collapse, dark-mode emulation, and social row layout to the captain.
+- DONE: Final recommendation: approve to done
+  All static checks for AC-8 through AC-12 PASS. Cycle-0 work (`h3 + hr` rule) is intact — no regression. Markup scope is exactly the three captain-requested classes of removal, no additions, no other edits. Recommend **approve to done**.
+
+### Summary
+
+Re-verified cycle-0 cleanly intact (no CSS regression, `git diff main -- styles.css` is byte-identical to cycle-0 validation) and validated cycle-1 markup work against the dispatch checklist using occurrence counts (`grep -o ... | wc -l`) per the corrected single-line-HTML protocol. All AC-8 through AC-12 PASS: 3-link social row in the right order (FACEBOOK | SUBSTACK | MASTODON), all 7 twitter:* meta tags removed, 9 og:* + 2 profile:* contiguous and unchanged, −770 byte delta confirmed, no CSS touched cycle-1. The diff is surgical: one hunk on line 2 with three captain-requested removals and zero additive content. Recommend **approve to done**.
