@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-13-open-graph-and-twitter-cards
 issue:
 pr:
-mod-block:
+mod-block: merge:pr-merge
 ---
 
 ## Problem

@@ -1,13 +1,13 @@
 ---
 id: mn4rs1hzcch58g0vph5jrz60
 title: Meta description
-status: ideation
+status: implementation
 source: FO upgrade suggestion
 started: 2026-05-18T17:55:21Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-14-meta-description
 issue:
 pr:
 mod-block:
