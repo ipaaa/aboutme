@@ -150,3 +150,31 @@ Generated the "ip" lowercase wordmark favicon per direction 3 using Pillow (in a
 ### Summary
 
 All six ACs PASS against worktree HEAD b8a0806. Three assets shipped (favicon-32.png 501B, favicon-180.png 2355B, favicon.svg 345B), three `<link>` tags inserted on index.html line 2 between `<title>` and `<style>` in SVG → PNG → apple-touch-icon order. The `ip` wordmark (direction 3) remains legible at the 16x16 downscale — i-dot and p-descender both survive. Gate-approval to `done`.
+
+## Feedback Cycles
+
+### Cycle 1 — captain rejected direction 3, switching to direction 2
+
+**Validator verdict:** all 6 ACs passed structurally. **Captain rejected at gate** after previewing the rendered favicon — the `ip` wordmark didn't carry the personal-identity weight the captain wanted.
+
+**Captain's chosen fallback:** direction 2 (portrait crop from `selfportrait.png`).
+
+**Concrete fix instructions to implementer:**
+
+1. **Delete the wordmark assets:** `git rm favicon-32.png favicon-180.png favicon.svg`. (Direction 2 is not vector-friendly per the original ideation, so the SVG is dropped — AC5 is also dropped.)
+
+2. **Generate portrait-crop favicons** from the existing `selfportrait.png` at repo root. Use ImageMagick (`convert`) or Python PIL:
+   - First, identify a tight square crop of the face (eyes/forehead/nose band — not the full head; full-head crops mush at 16×16). Inspect the source `selfportrait.png` to locate the face region; offsets will vary per the photo.
+   - Crop to a square focused on the face, then downscale to the two output sizes.
+   - Output: `favicon-32.png` (32×32) and `favicon-180.png` (180×180) at repo root.
+   - PNG, RGBA fine; ImageMagick `convert selfportrait.png -resize 360x -gravity north -crop {square}+0+{offset} -resize 32x32 favicon-32.png` is a starting template — tune the gravity/crop/offset to land on the face.
+
+3. **Update head markup:** remove the SVG `<link rel="icon" type="image/svg+xml" ...>` line. Keep the 32×32 PNG `<link rel="icon">` and the 180×180 `<link rel="apple-touch-icon">`. The two PNG links stay; only the SVG link is dropped.
+
+4. **Verify 16×16 legibility:** `sips -z 16 16 favicon-32.png --out /tmp/fav-16.png` then `open /tmp/fav-16.png` — confirm the face is still recognizable as a person at this size. If it's pure mush (no readable features), tighten the crop further (tighter face zoom = more recognizable at small sizes).
+
+**Re-implementation stage report:** append a `### Re-implementation (cycle 1)` subsection (or create `## Stage Report: implementation (cycle 1)`) with the new crop coordinates, file dimensions, and 16×16 spot-check evidence.
+
+**Send completion signal** to team-lead when done:
+
+    SendMessage(to="team-lead", message="Done: Add favicon re-implementation cycle 1 (direction 2, portrait crop) complete. Report appended to /Users/ipa/Documents/ipa Document/99_Claude spacedock folder/Personal writing/ipachiu/aboutme/.worktrees/spacedock-ensign-12-add-favicon/docs/responsive-redesign/12-add-favicon.md.")
