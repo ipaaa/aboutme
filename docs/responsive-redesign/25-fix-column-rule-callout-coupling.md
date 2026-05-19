@@ -132,3 +132,26 @@ Specifically targets the rules that sit directly under section headings. The top
 ### Summary
 
 Appended the captain-picked `h3 + hr` rule (40px emphasis bar, 2px currentColor, opacity 0.6) verbatim to the end of `styles.css`, with the mandated `/* #25: ... */` comment. Single commit `2402ba1`, only `styles.css` touched, `index.html` untouched. Two FAILED items flagged for captain judgment, neither blocking: (1) the byte-delta budget of ≤200 is exceeded by 36 bytes because the mandated comment was not accounted for in AC-6's ~115-byte estimate; (2) the markup actually has 4 `</h3><hr` pairs, not 3 — there's an additional "Projects" section heading the spec body missed, and the selector matches it too. Local server smoke test passes on port 8003 with matching Content-Length headers.
+
+## Stage Report: validation
+
+- DONE: AC-1 + AC-2: `grep -c '^h3 + hr {' styles.css` returns 1; `grep -A 6 '^h3 + hr {' styles.css` returns the exact 7-line block; `grep -c 'border-bottom: 2px solid currentColor' styles.css` returns 1
+  All three greps match exactly. Block body is byte-for-byte the captain-picked rule (width 40px / margin 0.5em 0 1em / border none / border-bottom 2px solid currentColor / opacity 0.6).
+- DONE: AC-3 (no other changes): `git diff main -- styles.css` shows exactly one additive hunk at the end of the file (the comment + blank line + 7-line rule), no deletions, no edits elsewhere; `git diff main -- index.html` returns empty
+  Diff is a single `@@ -283,3 +283,12 @@` hunk: 9 additive lines (`/* #25: ... */`, the 7-line block, and a trailing blank), 0 deletions. `git diff main -- index.html` returns empty.
+- DONE: AC-4 (no markup changes): `wc -c index.html` worktree HEAD = `git show main:index.html | wc -c`
+  Both equal 11503 bytes.
+- DONE: AC-5 (target pair count): `grep -c '</h3><hr' index.html` returns 4 (corrected from 3); sections enumerated; page-top `<hr>` unmatched
+  Returns 4. Enumerated headings in `index.html`: **Contact** (left col), **Social** (left col, has trailing space inside `<strong>`), **About Me** (right col), **Projects** (right col, after the callout). Sanity check: `grep -c '</p><hr' index.html` returns 1 — that is the page-top `<hr id="12f28c5c-1f02-810d-8d23-ddfacd2ec029"/>` after the `<p>` containing the bilingual name, which is correctly NOT matched by `h3 + hr`.
+- DONE: AC-6 (byte delta): `wc -c styles.css` worktree minus main = 236 ±5 (corrected cap ≤300)
+  5526 − 5290 = 236 bytes added; within the corrected ≤300 cap. Mandated `/* #25: ... */` comment is present in the diff.
+- DONE: AC-7 (other hr untouched): original `hr {` block still present; `grep -c '^hr {' styles.css` returns 1; new `h3 + hr {` rule is an additional, more-specific selector
+  `grep -c '^hr {' styles.css` returns 1. The original block (`hr { background: transparent; display: block; width: 100%; height: 1px; ...; border-bottom: 1px solid rgba(55, 53, 47, 0.09); ...; }`) is intact. The new `h3 + hr {` rule appears separately at the end of the file and only overrides when an `<h3>` sibling precedes the `<hr>`.
+- SKIPPED: Visual sanity (Test plan items 7-10) — PASS-BY-PROXY pending captain confirmation
+  Implementer ran `python3 -m http.server 8003` smoke test (Content-Length headers matched `wc -c`). FO is running the preview on port 8000 for captain eye-diff at the gate. The static mechanism (selector present, scoped to the intended elements, no other CSS touched) is what drives the visual behavior; deferring 1280×800 desktop, <720px collapse, and dark-mode emulation checks to the captain.
+- DONE: Final recommendation: approve to done with Projects-count note
+  All static checks pass against the corrected spec. The only judgment call for the captain is whether they want universal application of the short bar to all 4 `<h3>` (Contact, Social, About Me, **Projects**) versus narrowing the selector to just the 3 originally-named sections. The captain-picked selector `h3 + hr` is universal, so the natural result is 4-of-4. Recommend **approve to done**.
+
+### Summary
+
+Reproduced all 7 acceptance criteria against worktree HEAD `83902b2` (with implementation commit `2402ba1`) using the corrected grading caps from the dispatch note (≤300-byte delta, 4-pair target count). All static checks PASS: the rule is present byte-for-byte, the diff is a single additive hunk in `styles.css`, `index.html` is untouched, the original `hr {` block is intact, and the new selector matches exactly the intended 4 section headings while leaving the page-top `<hr>` unaffected. Recommend **approve to done with Projects-count note** — captain decision is whether universal application across all 4 section headings (including the spec-unenumerated "Projects" in the right column) is the desired outcome of the captain-picked universal selector.
