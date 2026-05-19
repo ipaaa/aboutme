@@ -1,15 +1,15 @@
 ---
 id: 91af3fjm93y2zqh7qptersvj
 title: Per-section lang overrides on English paragraphs
-status: validation
+status: done
 source: FO upgrade suggestion (deferred follow-up from #09)
 started: 2026-05-18T17:55:21Z
-completed:
-verdict:
-score:
-worktree: .worktrees/spacedock-ensign-15-lang-overrides-on-english-paragraphs
+completed: 2026-05-19T02:25:13Z
+verdict: approved
+score: 1.0
+worktree:
 issue:
-pr:
+pr: 11
 mod-block:
 ---
 
