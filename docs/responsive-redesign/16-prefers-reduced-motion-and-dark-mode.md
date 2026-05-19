@@ -1,13 +1,13 @@
 ---
 id: e4hr2mb81n0e7gkxq7e1kp54
 title: prefers-reduced-motion and prefers-color-scheme dark mode
-status: ideation
+status: implementation
 source: FO upgrade suggestion
 started: 2026-05-18T17:55:21Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-16-prefers-reduced-motion-and-dark-mode
 issue:
 pr:
 mod-block:
@@ -342,3 +342,12 @@ shipped.)
 ### Summary
 
 Fleshed out the ideation for two `@media`-driven system-pref rules appended to the inline `<style>` block: `prefers-reduced-motion` (universal duration-neutralizer, future-proofing since page has zero current motion) and `prefers-color-scheme: dark` (minimal palette inversion across the 7 existing color tokens, pink accent left alone since AA-large passes). Recommended keeping both in one entity (one PR, one validation cycle) with two commits on the same branch so reduced-motion stays revertable if dark mode needs design iteration. For dark mode, recommended direction A (minimal inversion ~12 lines) over B (CSS custom properties) over C (full layered theme) — B becomes attractive once #17 extracts the inline CSS to an external file, but is overhead today.
+
+## Captain decision (pre-implementation)
+
+Captain picked **direction A: minimal inversion + reduced-motion blanket killswitch**.
+
+- Dark mode: `body { background; color }` flip inside `@media (prefers-color-scheme: dark)`. Plus a single accent-color override for `a` links so they remain readable on dark background. 4-6 lines of CSS.
+- Reduced motion: blanket killswitch inside `@media (prefers-reduced-motion: reduce)` (covers any future animations/transitions even though the page currently has none).
+- Both blocks append to the end of the inline `<style>` block in `index.html`, after the existing CSS.
+- Accepted trade-off: highlight backgrounds (`.highlight-pink`, `.highlight-gray`, etc.) may look "weird" in dark mode (warm pastels on dark background). Captain accepts this; if it looks bad in practice, file a v2 follow-up entity for token-based theming (direction B).
