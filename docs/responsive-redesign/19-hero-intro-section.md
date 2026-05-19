@@ -548,3 +548,22 @@ Cycle-1 validation reproduced all six checklist items mechanically against workt
 ### Summary
 
 Cycle-2 typo fix applied: tagline now reads `Between SF Bay Area and Taipei.` (the metro region, not the body of water). Single Edit on index.html; styles.css untouched. Page weight exactly +5 bytes vs cycle-1 (10727 bytes; net −6 vs main). One commit: d0d74c3.
+
+## Stage Report: implementation (cycle 3)
+
+- DONE: Apply the edit. Single Edit.
+  Replaced `Between SF Bay Area and Taipei.` with `Between the SF Bay Area and Taipei.` (inserted `the ` between `Between ` and `SF`). Commit 3d49d5d.
+- DONE: Static verification.
+  `Between the SF Bay Area and Taipei.` → 1. `Between SF` → 0 (article-less version is gone). `Between the SF` → 1. `class="hero-tagline"` → 1 (paragraph still present). `<p class="hero-tagline" lang="en">` → 1 (lang attr unchanged).
+- DONE: Page-weight delta.
+  `wc -c index.html` → 10731. Cycle-2 was 10727; +4 bytes for `the ` insertion, matching the predicted exact delta. Net vs main (10733) = −2 bytes.
+- DONE: CSS untouched.
+  `git diff bb51ac4 -- styles.css` returns 0 lines.
+- DONE: Single commit.
+  3d49d5d `#19 cycle 3: tagline grammar fix 'SF Bay Area' → 'the SF Bay Area'` — index.html only (1 file changed, 1 insertion + 1 deletion).
+- DONE: Append `## Stage Report: implementation (cycle 3)` to the entity file with DONE entries.
+  This section.
+
+### Summary
+
+Cycle-3 grammar fix applied: tagline now reads `Between the SF Bay Area and Taipei.` (definite article before the metro-region name). Single Edit on index.html; styles.css untouched. Page weight exactly +4 bytes vs cycle-2 (10731 bytes; net −2 vs main). One commit: 3d49d5d.
