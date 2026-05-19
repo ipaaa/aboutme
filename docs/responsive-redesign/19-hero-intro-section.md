@@ -529,3 +529,22 @@ Cycle-1 swap applied per captain's pick: the bilingual T-3 tagline (which duplic
 ### Summary
 
 Cycle-1 validation reproduced all six checklist items mechanically against worktree HEAD `3c91e0f` (impl commit `71be6b8`). Cycle-0 markup/CSS is fully intact. New tagline `Between SF Bay and Taipei.` is present in a `<p class="hero-tagline" lang="en">` (1 occurrence); the old bilingual T-3 lines are gone (`Writer. Documentary filmmaker. g0v.tw co-founder.` → 0, hero-tagline `<br/>` absent); only the pre-existing About Me `寫作。紀錄片。組織者。` remains. styles.css unchanged (empty diff against `bb51ac4`). Page weight 10722 bytes (−11 vs main). Single cycle-1 commit `71be6b8` touches only index.html. Recommendation: **approve to done.**
+
+## Stage Report: implementation (cycle 2)
+
+- DONE: Apply the edit. Single Edit.
+  Replaced `Between SF Bay and Taipei.` with `Between SF Bay Area and Taipei.` (inserted ` Area` between `Bay` and ` and`). Commit d0d74c3.
+- DONE: Static verification.
+  `Between SF Bay Area and Taipei.` → 1. `Between SF Bay and Taipei.` → 0 (cycle-1 typo'd version gone). `class="hero-tagline"` → 1 (paragraph still present). `<p class="hero-tagline" lang="en">` → 1 (lang attr unchanged). `<span lang="zh-Hant">瞿筱葳</span>` → 1 (H1 unchanged).
+- DONE: Page-weight delta.
+  `wc -c index.html` → 10727. Cycle-1 was 10722; +5 bytes for ` Area` insertion, matching the predicted exact delta. Net vs main (10733) = −6 bytes.
+- DONE: CSS untouched.
+  `git diff bb51ac4 -- styles.css` returns 0 lines.
+- DONE: Single commit.
+  d0d74c3 `#19 cycle 2: tagline typo fix 'SF Bay' → 'SF Bay Area'` — index.html only (1 file changed, 1 insertion + 1 deletion).
+- DONE: Append `## Stage Report: implementation (cycle 2)` to the entity file with DONE entries.
+  This section.
+
+### Summary
+
+Cycle-2 typo fix applied: tagline now reads `Between SF Bay Area and Taipei.` (the metro region, not the body of water). Single Edit on index.html; styles.css untouched. Page weight exactly +5 bytes vs cycle-1 (10727 bytes; net −6 vs main). One commit: d0d74c3.
