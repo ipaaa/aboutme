@@ -1,15 +1,15 @@
 ---
 id: hz033xpvz74ypr0prcte8gen
 title: Hero / intro section
-status: implementation
+status: done
 source: FO upgrade suggestion
 started: 2026-05-19T19:15:00Z
-completed:
-verdict:
-score:
-worktree: .worktrees/spacedock-ensign-19-hero-intro-section
+completed: 2026-05-19T21:32:44Z
+verdict: approved
+score: 1.0
+worktree:
 issue:
-pr:
+pr: 18
 mod-block:
 ---
 
