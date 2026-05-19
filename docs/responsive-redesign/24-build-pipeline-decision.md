@@ -376,3 +376,30 @@ This entity (#24) ships **the build pipeline infrastructure only** — Eleventy 
 - Schema.org JSON-LD — that's #22.
 - Touching the existing CSS rules in `styles.css`.
 - Touching the existing OG/profile meta tags, favicon links, meta description.
+
+## Stage Report: implementation
+
+- DONE: Initialize Node project (package.json + npm install + .gitignore).
+  Commit `ea9faec`. `package.json` declares `@11ty/eleventy ^3.0.0`, `@11ty/eleventy-fetch ^5.0.0`, `rss-parser ^3.13.0`, `"type": "module"`, `"engines": { "node": ">=20" }`. `npm install` generated 1675-line `package-lock.json`. `.gitignore` appended `_site/` and `node_modules/`.
+- DONE: Create Eleventy config (.eleventy.js).
+  Commit `754a23e`. ESM config with passthroughCopy for the 5 static assets, `dir: { input: "src", output: "_site", includes: "_includes", data: "_data" }`, `htmlTemplateEngine: "njk"`.
+- DONE: Migrate assets to src/.
+  Commit `8e8f2e3`. `git mv` of `styles.css`, `favicon-32.png`, `favicon-180.png`, `selfportrait.png`, `CNAME` into `src/` (100% rename similarity).
+- DONE: Re-flow index.html into legible Nunjucks templates.
+  Commit `059b027`. Created `src/_includes/base.njk` (24 lines — head with full 11 OG+profile meta tags, title via `{{ title }}`, body wrapper with `{{ content | safe }}`), `src/_includes/hero.njk` (8 lines), `src/_includes/social-row.njk` (10 lines, kept as a partial for future #21 reuse — not yet referenced from `index.njk`), `src/index.njk` (75 lines, frontmatter sets `layout: base.njk` and `title: ipa chiu 瞿筱葳`). Every Notion-stable id, every class, lang, mark, hr, and attribute from the original verbatim. Whitespace inserted only at block-element boundaries (between sibling `<p>`/`<h3>`/`<hr>`/`<figure>` inside `<div class="indented">` and `<div class="column">`), so no rendered text-node spaces are introduced inside the inline runs (the FACEBOOK|SUBSTACK|MASTODON `<mark>` chain and the multi-`<mark>` paragraphs stay on single source lines).
+- DONE: Delete root index.html.
+  Commit `6ad87b1`. `git rm index.html` (10731 B deleted from main; built output now supersedes via `_site/index.html`).
+- DONE: Verify local build.
+  Clean `rm -rf _site && npx @11ty/eleventy` exits 0 in ~0.05s and writes `_site/index.html` (10842 B, +111 vs pre-#24 10731 B — within ±200), `_site/styles.css` (5298 B exact match), `_site/favicon-32.png` (5315 B), `_site/favicon-180.png` (68964 B), `_site/selfportrait.png` (905052 B), `_site/CNAME` (10 B). Structural-equivalence verified by stripping all whitespace from `_site/index.html` and from the pre-#24 `index.html` — both reduce to 9446 chars and are **byte-identical**. Grep counts vs spec: hero 1, tagline 1, FACEBOOK 1, SUBSTACK 1, MASTODON 1, meta-desc 1, og 9, profile 2, twitter 0, prefers-reduced-motion 1, `^h3 + hr {` 1, prefers-color-scheme 0 — all match. Smoke-served `_site/` via `python3 -m http.server 8009`: `curl -sI /` returns 200 Content-type: text/html, `curl -sI /styles.css` returns 200 Content-type: text/css. No commit (verification only, no diff).
+- DONE: Add GitHub Actions deploy workflow.
+  Commit `844c2ba`. `.github/workflows/deploy.yml` per ideation stub: `actions/checkout@v4`, `actions/setup-node@v4` Node 20 with npm cache, `npm ci`, `npx @11ty/eleventy`, `actions/upload-pages-artifact@v3` path `_site`, `actions/deploy-pages@v4`. Added `concurrency: { group: pages, cancel-in-progress: false }` to serialise queued deploys. Permissions `contents: read, pages: write, id-token: write`. Triggers: `push` to `main` and `workflow_dispatch`.
+- DONE: Switch GitHub Pages source to GitHub Actions.
+  Ran `gh api -X PUT repos/ipaaa/aboutme/pages -f build_type=workflow` (204 No Content). Verified via `gh api repos/ipaaa/aboutme/pages`: `build_type` now `"workflow"` (was `"legacy"`). CNAME `ipachiu.me` preserved, `https_enforced: true` preserved, certificate state `approved`. No file change → no commit. Captain action not required; the API call succeeded under the existing `repo` token scope.
+- DONE: Final regression verification.
+  After all 6 commits, did `rm -rf _site && npx @11ty/eleventy` from scratch. All grep counts above re-verified against the freshly-built output (identical). `_site/index.html` final size 10842 B (+111 from pre-#24 10731 B). `src/index.njk` legibility: 75 lines, longest line 604 chars (7.1% of total 8475 chars) — well under the AC-2 < 20% threshold (pre-#24 single-line source was at 99%).
+- DONE: Stage report.
+  This section.
+
+### Summary
+
+Bootstrapped Eleventy 3.x pipeline (`package.json` + `.eleventy.js` + `src/` layout + GitHub Actions deploy) and re-flowed the Notion-flattened single-line `index.html` into four Nunjucks templates (`base.njk`, `hero.njk`, `social-row.njk`, `index.njk`) across 6 commits on `spacedock-ensign/24-build-pipeline`. Local clean build produces `_site/index.html` that is **whitespace-stripped byte-identical** to the pre-#24 `index.html` (9446 chars after collapsing whitespace; full grep-count parity on hero/social/meta/OG/profile/CSS markers). GitHub Pages source switched to `build_type=workflow` via `gh api`; CNAME and HTTPS preserved. No new content was added — strictly out-of-scope items (`_data/posts.js`, Latest-writing section, Subscribe CTA) were left untouched for #20. Hard scope rule observed: visitors cannot tell anything changed.
