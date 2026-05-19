@@ -155,3 +155,24 @@ Appended the captain-picked `h3 + hr` rule (40px emphasis bar, 2px currentColor,
 ### Summary
 
 Reproduced all 7 acceptance criteria against worktree HEAD `83902b2` (with implementation commit `2402ba1`) using the corrected grading caps from the dispatch note (≤300-byte delta, 4-pair target count). All static checks PASS: the rule is present byte-for-byte, the diff is a single additive hunk in `styles.css`, `index.html` is untouched, the original `hr {` block is intact, and the new selector matches exactly the intended 4 section headings while leaving the page-top `<hr>` unaffected. Recommend **approve to done with Projects-count note** — captain decision is whether universal application across all 4 section headings (including the spec-unenumerated "Projects" in the right column) is the desired outcome of the captain-picked universal selector.
+
+## Stage Report: implementation (cycle 1)
+
+- DONE: Apply Edit 1 (body social row trim — remove MEDIUM + TWITTER)
+  Single Edit replaced the 5-mark social row with a 3-mark row. Result: `FACEBOOK | SUBSTACK | MASTODON` with two ` | ` separators. Occurrence counts: `grep -o 'medium.com' index.html | wc -l` → 0; `grep -o 'x.com/ipa' index.html | wc -l` → 0. Three `<mark class="highlight-gray"><a href` patterns remain in the social row (the 4th `highlight-gray a-href` mark on the page is the Contact mailto block). Href ordering after the mailto contact links: `facebook.com/ipa.chiu/`, `ipachiu.substack.com/`, `g0v.social/@ipa` — matches spec.
+- DONE: Apply Edit 2 (head twitter:* removal — 7 contiguous meta tags)
+  Single Edit collapsed `<meta property="profile:last_name" ...><meta name="twitter:card" ...>...<meta name="twitter:image:alt" ...><title>...` to `<meta property="profile:last_name" ...><title>...`. Occurrence counts: `grep -o 'twitter:' index.html | wc -l` → 0; `grep -o 'property="og:' index.html | wc -l` → 9 (unchanged); `grep -o 'property="profile:' index.html | wc -l` → 2 (unchanged). Note: the checklist's `grep -c 'property="og:'` returns `1` (line count, not occurrence count) because `index.html` is single-line Notion-flattened HTML — reporting occurrence count of 9 against spec intent.
+- DONE: Verify nothing else changed (`git diff spacedock-ensign/25-fix-column-rule-callout-coupling -- index.html` vs cycle-0)
+  Diff is two contiguous removals on line 2: the 7-tag twitter:* block in `<head>`, and the MEDIUM/TWITTER segments in the social row paragraph. No other text touched.
+- DONE: CSS untouched this cycle (`git diff spacedock-ensign/25-fix-column-rule-callout-coupling -- styles.css` returns empty)
+  Diff against cycle-0 HEAD `8c849b9` is 0 lines. Cycle-0 `h3 + hr` rule stays as-is.
+- DONE: Page-weight regression — negative delta confirmed
+  `wc -c index.html` worktree HEAD = 10733; `git show main:index.html | wc -c` = 11503. Delta = **−770 bytes** (file got smaller by 770). Slightly more reduction than the spec's expected ≈680 — the actual twitter:* block was ~570 bytes and the social-row trim ~200 bytes.
+- DONE: Two commits on the branch atop the cycle-0 commit
+  `824ee48` — `#25 cycle 1a: trim social row to 3 links (remove MEDIUM + TWITTER)` (1 file, 1 insertion +, 1 deletion −, only index.html). `2ae69d0` — `#25 cycle 1b: remove twitter:* meta tags from head (cut ties with X)` (1 file, 1 insertion +, 1 deletion −, only index.html).
+- DONE: Append `## Stage Report: implementation (cycle 1)` to entity file
+  This section.
+
+### Summary
+
+Applied both captain-requested markup edits to `index.html` line 2 in two surgical commits (`824ee48`, `2ae69d0`). Social row reduced from 5 links (FACEBOOK | MEDIUM | SUBSTACK | MASTODON | TWITTER) to 3 (FACEBOOK | SUBSTACK | MASTODON); the 7 `<meta name="twitter:..." ...>` tags removed from `<head>` while OG/profile tags stay contiguous and unchanged. `styles.css` not touched this cycle. Page weight dropped 770 bytes (11503 → 10733). One small spec/reality mismatch worth noting: the checklist's `grep -c 'property="og:'` returning "9" is unreachable because the file is single-line Notion-flattened HTML — line-based grep -c maxes out at 1; occurrence count (`grep -o ... | wc -l`) does return 9 unchanged, which matches the spec's intent.
