@@ -1,0 +1,19 @@
+{
+  "name": "ipachiu-me",
+  "version": "1.0.0",
+  "description": "Source for ipachiu.me — built with Eleventy and deployed to GitHub Pages.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx @11ty/eleventy --serve",
+    "build": "npx @11ty/eleventy"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@11ty/eleventy": "^3.0.0",
+    "@11ty/eleventy-fetch": "^5.0.0",
+    "rss-parser": "^3.13.0"
+  }
+}
