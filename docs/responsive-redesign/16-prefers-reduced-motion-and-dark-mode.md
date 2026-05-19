@@ -1,15 +1,15 @@
 ---
 id: e4hr2mb81n0e7gkxq7e1kp54
 title: prefers-reduced-motion and prefers-color-scheme dark mode
-status: validation
+status: done
 source: FO upgrade suggestion
 started: 2026-05-18T17:55:21Z
-completed:
-verdict:
-score:
-worktree: .worktrees/spacedock-ensign-16-prefers-reduced-motion-and-dark-mode
+completed: 2026-05-19T02:39:29Z
+verdict: approved
+score: 1.0
+worktree:
 issue:
-pr:
+pr: 14
 mod-block:
 ---
 
