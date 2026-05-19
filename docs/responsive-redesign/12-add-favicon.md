@@ -127,3 +127,26 @@ Fleshed out the favicon task into a full ideation spec: three design directions 
 ### Summary
 
 Generated the "ip" lowercase wordmark favicon per direction 3 using Pillow (in a venv, since system pip3 is PEP 668-locked and ImageMagick wasn't installed) with Arial Black on a warm-cream `#f5f1ea` field. Shipped `favicon-32.png`, `favicon-180.png`, and `favicon.svg` at repo root, plus three `<link>` tags in `<head>` between `<title>` and `<style>` (SVG first so modern browsers prefer it). Verified the 32x32 downscales cleanly to 16x16 — i dot and p descender both survive — so AC5 is in scope and the SVG is included.
+
+## Stage Report: validation
+
+- DONE: AC1 — 32x32 PNG favicon exists at repo root.
+  `file favicon-32.png` → `PNG image data, 32 x 32, 8-bit/color RGBA, non-interlaced`; size 501B at worktree HEAD b8a0806. PASS.
+- DONE: AC2 — 180x180 apple-touch-icon PNG exists at repo root.
+  `file favicon-180.png` → `PNG image data, 180 x 180, 8-bit/color RGBA, non-interlaced`; size 2355B. PASS.
+- DONE: AC3 — `index.html` head contains `<link rel="icon">` referencing `favicon-32.png`.
+  `grep -n 'rel="icon"' index.html` → line 2 contains both `<link rel="icon" type="image/svg+xml" href="favicon.svg">` and `<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">`. PASS.
+- DONE: AC4 — `index.html` head contains `<link rel="apple-touch-icon">` referencing `favicon-180.png`.
+  `grep -n 'rel="apple-touch-icon"' index.html` → line 2 contains exactly one match: `<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">`. PASS.
+- DONE: AC5 — `favicon.svg` exists and is referenced by `<link rel="icon" type="image/svg+xml">`.
+  File exists (345B); `grep -c 'image/svg+xml' index.html` → 1; SVG parses as valid XML (root tag svg, viewBox `0 0 32 32`). PASS.
+- DONE: AC6 — Favicon link tags placed between `<title>` and inline `<style>`.
+  `index.html` is single-line minified; on line 2 the order is `<title>...</title>` → `<link rel="icon" type="image/svg+xml" ...>` → `<link rel="icon" type="image/png" ...>` → `<link rel="apple-touch-icon" ...>` → `<style>`. SVG-first ordering matches the proposed approach so modern browsers prefer it. PASS.
+- DONE: Visual legibility spot-check at 16x16.
+  Downscaled via `sips -z 16 16 favicon-32.png --out /tmp/fav-16.png`. Inspected both renders: at 32x32 the heavy sans `ip` is crisp; at 16x16 the i-dot remains separated from the stem and the p-bowl/descender are both intact against the `#f5f1ea` background. Legible. PASS.
+- DONE: File integrity checks.
+  `file` reports correct PNG dimensions for both rasters (32x32, 180x180); `favicon.svg` parses without errors via `xml.etree.ElementTree`. PASS.
+
+### Summary
+
+All six ACs PASS against worktree HEAD b8a0806. Three assets shipped (favicon-32.png 501B, favicon-180.png 2355B, favicon.svg 345B), three `<link>` tags inserted on index.html line 2 between `<title>` and `<style>` in SVG → PNG → apple-touch-icon order. The `ip` wordmark (direction 3) remains legible at the 16x16 downscale — i-dot and p-descender both survive. Gate-approval to `done`.
