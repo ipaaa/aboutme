@@ -508,3 +508,24 @@ Validation reproduced all ten checklist items mechanically against worktree HEAD
 ### Summary
 
 Cycle-1 swap applied per captain's pick: the bilingual T-3 tagline (which duplicated the About Me role list) is replaced with the English-only place-anchor `Between SF Bay and Taipei.` Single Edit on index.html line 2; styles.css untouched (cycle-0 `.hero-tagline` rule still applies). Page-weight net vs main is now −11 bytes (HTML slightly smaller than original). One commit on branch: 71be6b8.
+
+## Stage Report: validation (cycle 1)
+
+- DONE: Cycle-0 work intact (regression).
+  `grep -c '<section class="hero hero--inline"' index.html` → 1. `grep -c 'aria-labelledby="hero-name"' index.html` → 1. `grep -c '<span lang="zh-Hant">瞿筱葳</span>' index.html` → 1. `grep -c '<span lang="en">Ipa Chiu</span>' index.html` → 1. `grep -c '12f28c5c-1f02-810d-8d23-ddfacd2ec029' index.html` → 1. `grep -c '^\.hero--inline {' styles.css` → 1. `grep -c '^\.hero--inline h1 {' styles.css` → 1. `grep -c '^\.hero-tagline {' styles.css` → 1.
+- DONE: New tagline content correct.
+  `grep -c 'Between SF Bay and Taipei.' index.html` → 1. `grep -c '<p class="hero-tagline" lang="en">' index.html` → 1. `grep -c '<p class="hero-tagline">' index.html` (no lang) → 0 (cycle-0 lang-less paragraph is gone).
+- DONE: Old bilingual tagline removed.
+  `grep -c 'Writer. Documentary filmmaker. g0v.tw co-founder.' index.html` → 0. `grep -c '寫作。紀錄片。組織者。' index.html` → 1 (only the pre-existing About Me Chinese line remains). Direct extraction of the hero-tagline paragraph returns `<p class="hero-tagline" lang="en">Between SF Bay and Taipei.</p>` — no `<br/>` inside the hero tagline.
+- DONE: CSS untouched.
+  `git diff bb51ac4 -- styles.css` returns empty (0 lines of diff). styles.css unchanged this cycle.
+- DONE: Page-weight delta.
+  `wc -c < index.html` → 10722. Cycle 0 was 10824 (−102 bytes this cycle). Net vs main (10733) = −11 bytes. Matches implementer report.
+- DONE: Single cycle-1 commit.
+  `git log --oneline bb51ac4..HEAD -- index.html` shows only `71be6b8`. Commit subject: `#19 cycle 1: swap tagline to "Between SF Bay and Taipei." (avoid About Me overlap)`. Stat: index.html, 1 file changed, 1 insertion + 1 deletion.
+- DONE: Final recommendation.
+  **Approve to done.** All cycle-1 checks pass; cycle-0 work is intact; styles.css is untouched; new tagline is correctly attached with `lang="en"`; old bilingual tagline is fully removed (only the pre-existing About Me Chinese line `寫作。紀錄片。組織者。` remains, which is the intended state); page-weight net delta is −11 bytes vs main. Visual confirmation at FO's preview port remains the captain's eye-diff (PASS-BY-PROXY).
+
+### Summary
+
+Cycle-1 validation reproduced all six checklist items mechanically against worktree HEAD `3c91e0f` (impl commit `71be6b8`). Cycle-0 markup/CSS is fully intact. New tagline `Between SF Bay and Taipei.` is present in a `<p class="hero-tagline" lang="en">` (1 occurrence); the old bilingual T-3 lines are gone (`Writer. Documentary filmmaker. g0v.tw co-founder.` → 0, hero-tagline `<br/>` absent); only the pre-existing About Me `寫作。紀錄片。組織者。` remains. styles.css unchanged (empty diff against `bb51ac4`). Page weight 10722 bytes (−11 vs main). Single cycle-1 commit `71be6b8` touches only index.html. Recommendation: **approve to done.**
