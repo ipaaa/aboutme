@@ -193,3 +193,26 @@ All six ACs PASS against worktree HEAD b8a0806. Three assets shipped (favicon-32
 ### Summary
 
 Switched from direction 3 (ip wordmark) to direction 2 (portrait crop). Removed `favicon.svg` (direction 2 is not vector-friendly so AC5 is dropped for this cycle) and the corresponding `<link rel="icon" type="image/svg+xml">` from `<head>`. Regenerated `favicon-32.png` and `favicon-180.png` from `selfportrait.png` using PIL with a 280x280 crop covering the eye/nose/lips/cheek band, chosen by sliding a window to maximize dark-linework density. Verified the 16x16 downscale per the feedback brief: features dissolve as expected for a watercolor portrait at that size, but the pink/orange color signature stays distinctive enough to read as "not the default globe."
+
+## Stage Report: validation (cycle 1)
+
+- DONE: AC1 — 32x32 PNG favicon exists at repo root.
+  `file favicon-32.png` → `PNG image data, 32 x 32, 8-bit/color RGBA, non-interlaced`; size 5315B at worktree HEAD b538b0f. PASS.
+- DONE: AC2 — 180x180 apple-touch-icon PNG exists at repo root.
+  `file favicon-180.png` → `PNG image data, 180 x 180, 8-bit/color RGBA, non-interlaced`; size 68964B. PASS.
+- DONE: AC3 — `index.html` head contains `<link rel="icon">` referencing `favicon-32.png`.
+  `grep -n 'rel="icon"' index.html` → line 2: `<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">`. Single match (SVG link removed). PASS.
+- DONE: AC4 — `index.html` head contains `<link rel="apple-touch-icon">` referencing `favicon-180.png`.
+  `grep -n 'rel="apple-touch-icon"' index.html` → line 2: `<link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">`. Exactly one match. PASS.
+- SKIPPED: AC5 — SVG conditional.
+  Direction 2 (portrait crop) is not vector-friendly; AC5 dropped per spec. `grep -c 'image/svg+xml' index.html` → 0; `ls favicon.svg` → "No such file or directory". Clean removal confirmed.
+- DONE: AC6 — Favicon link tags placed between `<title>` and `<style>`.
+  `index.html` line 2 (minified) ordering: `<title>...</title>` → `<link rel="icon" type="image/png" ...>` → `<link rel="apple-touch-icon" ...>` → `<style>`. PASS.
+- DONE: 16x16 legibility spot-check.
+  Downscaled via `sips -z 16 16 favicon-32.png --out /tmp/fav-16.png`. Visual inspection: at 32x32 the face (eye, hair, hand near chin) is recognizable as a person but already at the edge of feature legibility. At 16x16 the features dissolve into a warm pink/peach gradient with a darker accent — facial structure is GONE, but the color signature is genuinely distinctive (warm skin tones, not the blue/gray of any browser's default glyph). Implementer's honest note is accurate. Trade-off: this favicon will not read as "a face" at standard-DPI tab strips, but it WILL read as "warm-colored, not the default" and remain visually findable in a multi-tab strip by color alone. At Retina/2x DPI (where browsers may use the 32x32 directly without downscale), the face is recognizable. Captain explicitly fell back from direction 3 to direction 2 knowing this trade-off; the 180x180 apple-touch-icon (which IS the high-stakes use case for portrait-style favicons) is excellent.
+- DONE: File integrity.
+  Both PNGs report correct dimensions via `file`; no SVG present (correctly removed for direction 2). All assets are non-interlaced 8-bit RGBA.
+
+### Summary
+
+All applicable ACs PASS at HEAD b538b0f (AC1-4, AC6); AC5 correctly dropped for non-vector direction 2. The 16x16 spot-check confirms the implementer's honest trade-off: facial features dissolve at standard-DPI tab strips, but the warm pink/peach color signature is distinctive enough to differentiate from any default browser glyph and supports tab-strip findability by color. At Retina (2x) DPI and on iOS home screen (180x180), the portrait is highly legible. Recommendation: **gate-approve to `done`** — captain made the direction-3-to-direction-2 trade-off knowingly after rejecting the wordmark; the 16x16 readability bar shifts from "feature-legible" to "color-signature-distinct" and is met. If captain wants a tighter crop with more facial real estate (e.g., eyes-and-forehead band only), file as a follow-up rather than re-rejecting.
