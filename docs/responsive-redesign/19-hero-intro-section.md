@@ -1,9 +1,9 @@
 ---
 id: hz033xpvz74ypr0prcte8gen
 title: Hero / intro section
-status: backlog
+status: ideation
 source: FO upgrade suggestion
-started:
+started: 2026-05-19T19:15:00Z
 completed:
 verdict:
 score:
