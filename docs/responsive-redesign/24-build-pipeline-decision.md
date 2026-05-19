@@ -1,9 +1,9 @@
 ---
 id: 5qka7j9pn9tc2hkq3df3k130
 title: Build pipeline decision
-status: backlog
+status: ideation
 source: FO upgrade suggestion
-started:
+started: 2026-05-19T21:40:00Z
 completed:
 verdict:
 score:
