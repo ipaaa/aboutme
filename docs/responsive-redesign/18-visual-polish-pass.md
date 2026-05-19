@@ -1,9 +1,9 @@
 ---
 id: ac3nsb8h6p1ne7rkpvpv1d89
 title: Visual polish pass
-status: ideation
+status: backlog
 source: FO upgrade suggestion
-started: 2026-05-19T04:20:00Z
+started:
 completed:
 verdict:
 score:
@@ -424,3 +424,11 @@ Strict — implementation must not touch any of:
 ### Summary
 
 Surfaced three concrete, distinct design directions for the visual polish pass — each grounded in a different aesthetic intent (editorial / civic-tech / handmade) and each landing with explicit CSS specs the captain can compare like mockups. Recommended Direction C as the strongest match for the watercolor portrait and bilingual content, while making clear A and B win on different axes. Gate-shape ACs and a viewport-named test plan are in place; direction-specific ACs are deferred to post-gate, per the stage definition.
+
+## Captain pause note (2026-05-19)
+
+Ideation produced three concrete directions (A letterpress book / B civic-tech zine / C handmade journal) with full CSS specs. Captain previewed C at `/tmp/visual-preview/c/`, was inclined toward C but observed the broad polish was too subtle relative to the cost. Captain identified a specific underlying visual coupling problem (the Contact/Social `<hr>` rules in the left column visually merging with the gray callout in the right column) and chose to fix that narrowly first.
+
+#18 reset to backlog. **Ideation report above is retained** so when #18 is re-engaged, the three directions and the chosen-but-not-shipped Direction C spec are available without redoing ideation work. Captain may pick a different direction at that point — the report's recommendation (C) is from the snapshot when bilingual ergonomics + portrait sympathy were the binding constraints.
+
+The narrow fix is filed as a sibling entity (`25-fix-column-rule-callout-coupling.md`).
