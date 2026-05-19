@@ -243,3 +243,22 @@ Added a contiguous block of 18 social-preview meta tags (9 Open Graph, 2 profile
 ### Summary
 
 All static AC (AC-1 through AC-12, AC-15) PASS against worktree HEAD 93bcc86 — 18 contiguous social-preview meta tags inserted between `<meta name="viewport">` and `<title>` with exact spec values; `og:description` length re-verified at 167 chars; page weight delta 1315 bytes under the 2 KB cap; `<html lang="zh-Hant">` unregressed. AC-13 (Facebook Sharing Debugger) and AC-14 (X Card Validator) are PASS-BY-PROXY since both require a live deployed URL — flag for post-merge live-preview pass on Facebook, X, iMessage, Slack, Substack, Mastodon, with attention to 1.91:1 center-crop of the square `selfportrait.png` (the documented trigger for a follow-up dedicated-social-card entity). Gate approval: advance to `done`.
+
+## Stage Report: implementation (cycle 1)
+
+- DONE: Edit `index.html`: replace the `content="..."` value of TWO existing tags (`og:description` and `twitter:description`) with the new 144-char string; do not touch the other 16 tags.
+  Replaced both `content` values with the captain-provided 144-char string verbatim; spot-check enumeration confirms the other 9 og:* + 2 profile:* + 7 twitter:* tags are unchanged (og:title=`Ipa Chiu 瞿筱葳`, og:type=`profile`, og:url=`https://ipachiu.me/`, og:image=`https://ipachiu.me/selfportrait.png`, og:image:alt=`Portrait of Ipa Chiu / 瞿筱葳`, og:locale=`zh_TW`, og:locale:alternate=`en_US`, og:site_name=`ipachiu.me`, twitter:card=`summary_large_image`, twitter:site=`@ipa`, twitter:creator=`@ipa`, twitter:title=`Ipa Chiu 瞿筱葳`, twitter:image=`https://ipachiu.me/selfportrait.png`, twitter:image:alt=`Portrait of Ipa Chiu / 瞿筱葳`, profile:first_name=`Hsiao-wei`, profile:last_name=`Chiu`).
+- DONE: Re-run AC-2 — `og:description` length via python3 regex; expect 144 chars / 146 bytes (well under ≤200 cap; also under ≤160 SERP cap shared with #14).
+  Python3 regex extraction reports `len = 144` chars, `len(utf-8) = 146` bytes — PASS, under both the ≤200 OG cap and the ≤160 SERP cap.
+- DONE: Re-run AC-11 — `twitter:description` content matches `og:description` byte-for-byte.
+  Python3 `og.encode('utf-8') == tw.encode('utf-8')` → True; both = 146 bytes — PASS.
+- DONE: Re-run AC-15 — `wc -c index.html` worktree HEAD vs `git show main:index.html | wc -c`; confirm delta < 2048 bytes.
+  Worktree `wc -c index.html` = 15354; `git show main:index.html | wc -c` = 14665; delta = 689 bytes (<2048). PASS. (Main moved since cycle 0 — favicon PR #10 + lang PR #11 merged — so baseline is larger than cycle 0's 13181; the trim itself shrank the file by 46 bytes vs cycle 0's 14496.)
+- DONE: Spot-check that the other 9 og:* + 7 twitter:* tags are unchanged.
+  Enumerated via grep; all 16 non-description tags preserve their cycle-0 values verbatim, no extras present, no tags removed.
+- DONE: Commit on branch `spacedock-ensign/13-open-graph-and-twitter-cards` with message `#13 cycle 1: trim og:description and twitter:description to 144 chars per captain feedback`.
+  Committed (see git log for SHA).
+
+### Summary
+
+Cycle 1 trimmed `og:description` and `twitter:description` from the 167-char cycle-0 string to the captain-provided 144-char / 146-byte string by dropping the trailing " from the SF Bay Area" geographic phrase, aligning #13 with #14's same-string trim so AC-6's identity invariant holds across both entities. All 16 other meta tags untouched. AC-2 (≤200 / ≤160), AC-11 (byte-equal), and AC-15 (<2 KB delta, actual 689 bytes vs current main) all PASS; ready for re-validation gate.
