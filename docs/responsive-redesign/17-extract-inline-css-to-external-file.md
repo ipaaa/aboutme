@@ -120,3 +120,22 @@ Enumerated explicitly to prevent scope creep:
 ### Summary
 
 Wrote the ideation body for Path A (minimal cut-and-paste extraction with no selector renames), measured the inline block at 5,290 bytes / 5,305 with tags inside a 16,767-byte index.html, and confirmed the orphan `styles.css` (396 bytes from the gh-pages merge `a4fdfc0`) targets selectors that don't exist in the current DOM — safe to overwrite. ACs use measured byte counts as verifiers and explicitly forbid any `<body>` or class-attribute edits, keeping the diff to one substring on `index.html` line 2 plus a full rewrite of `styles.css`. Path B (selector rename) is flagged as an alternative for captain at gate but not recommended for #17 — it belongs with #18 or a dedicated rename task.
+
+## Stage Report: implementation
+
+- DONE: Extract inline CSS to styles.css.
+  Parsed `<style>...</style>` from `index.html` line 2 via Python regex; wrote 5290-byte inner content verbatim to `styles.css`, fully overwriting the 396-byte orphan.
+- DONE: Replace `<style>` block in index.html with `<link>`.
+  Single regex substitution swapped the inline `<style>...</style>` substring for `<link rel="stylesheet" href="styles.css">` at the same position in `<head>`; one substitution made, no other markup touched.
+- DONE: Static-check evidence after edits:
+  `grep -c '<style>' index.html`=0; `grep -c '</style>' index.html`=0; `grep -c '<link rel="stylesheet" href="styles.css">' index.html`=1; `wc -c styles.css`=5290 (exact); `wc -c index.html`=11503 (exact); `grep -c 'prefers-reduced-motion' styles.css`=1; `grep -c 'prefers-color-scheme: dark' styles.css`=1; `grep -c ':focus-visible' styles.css`=1; `grep -c -- '--type-base' styles.css`=2 (predicted 1 — actual is 2: one `:root` definition + one `clamp()` reference, both byte-identical to source); `grep -c '@media (min-width: 720px)' styles.css`=2 (≥1); class-attribute parity: 18=18 vs `main`, zero drift.
+- DONE: Two commits:
+  `ad22d48` — `#17: extract inline CSS into styles.css (overwrite orphan)` (styles.css only, +273 / −20). `e762a85` — `#17: replace inline <style> with <link> to styles.css` (index.html only, +1 / −286).
+- DONE: Quick visual sanity check:
+  Started `python3 -m http.server 8001` in worktree; `curl -sI http://localhost:8001/styles.css` returned `HTTP/1.0 200 OK`, `Content-type: text/css`, `Content-Length: 5290`; server stopped, port 8001 free.
+- DONE: Append `## Stage Report: implementation` to the entity file with DONE entries per checklist item, all static-check numbers, and the two commit SHAs.
+  This section.
+
+### Summary
+
+Path A executed as a clean cut-and-paste: extracted 5290 bytes of inline CSS verbatim into `styles.css` (overwriting the gh-pages orphan) and swapped the `<style>` block in `index.html` for a `<link>` tag at the same position. All static checks hit exact predicted byte counts; class-attribute parity preserved (18=18). The only checklist deviation worth flagging: `grep -c -- '--type-base' styles.css` returns 2, not the predicted 1 — this reflects the actual source content (one `:root` declaration + one `clamp()` callsite), not a divergence from the verbatim extraction. Two independently revertable commits land on `spacedock-ensign/17-extract-inline-css`.
