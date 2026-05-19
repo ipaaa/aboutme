@@ -489,3 +489,22 @@ Implemented Direction A (inline hero) with T-3 bilingual tagline per captain's p
 ### Summary
 
 Validation reproduced all ten checklist items mechanically against worktree HEAD (commits 1528a76 markup + bb51ac4 CSS). Every grep/wc count matches the implementer's report. Hero section is structurally present with correct aria-labelledby + bilingual lang-tagged H1 + byte-for-byte T-3 tagline; all three old-opening fragments (`Ipa CHIU`, `highlight-default"><strong>瞿筱葳`, `(Hsiao-wei CHIU)`) are gone; page-top `<hr>` id is preserved and positioned immediately after the closing `</section>`; four CSS rules are appended without disturbing #25's `h3 + hr` rule or #16's reduced-motion block. Page-weight deltas (+91 bytes index.html, +173 bytes styles.css against pre-#26 main) are well under the +1024 / +500 caps. Visual checks at 375/720/1280 px are deferred to the captain via FO's port-8007 preview (PASS-BY-PROXY). Recommendation: **approve to done.**
+
+## Stage Report: implementation (cycle 1)
+
+- DONE: Apply the edit. Single Edit using the find/replace strings above.
+  Replaced the bilingual two-line `<p class="hero-tagline">` block (zh role line + `<br/>` + en role line) with `<p class="hero-tagline" lang="en">Between SF Bay and Taipei.</p>`. Bilingual H1 untouched; page-top `<hr>` untouched. Commit 71be6b8.
+- DONE: Static verification.
+  `寫作。紀錄片。組織者。` → 1 (only the pre-existing About Me Chinese line remains; the hero tagline copy is gone). `Writer. Documentary filmmaker. g0v.tw co-founder.` → 0 (removed). `Between SF Bay and Taipei.` → 1. `class="hero-tagline"` → 1. `<p class="hero-tagline" lang="en">` → 1. `<span lang="zh-Hant">瞿筱葳</span>` → 1 (H1 zh span unchanged). `<span lang="en">Ipa Chiu</span>` → 1 (H1 en span unchanged). `12f28c5c-1f02-810d-8d23-ddfacd2ec029` → 1 (page-top hr id unchanged).
+- DONE: CSS untouched.
+  `git diff bb51ac4 -- styles.css` returns 0 lines. `grep -c '^\.hero-tagline {' styles.css` → 1 (cycle-0 rule still present, still applies to the new single-line content).
+- DONE: Page-weight delta.
+  index.html worktree HEAD 10722 bytes; main 10733; cycle-0 (bb51ac4) 10824. Net cycle-1 delta vs cycle-0: −102 bytes (predicted ≈ −85; slightly more savings because the en role line + `<br/>` + two `<span>` wrappers shed more than the predicted estimate). Net vs main: −11 bytes total (HTML now slightly smaller than original). styles.css unchanged at 5699 bytes.
+- DONE: Single commit on the branch atop the cycle-0 commits.
+  71be6b8 `#19 cycle 1: swap tagline to "Between SF Bay and Taipei." (avoid About Me overlap)` — index.html only (1 file changed, 1 insertion + 1 deletion).
+- DONE: Append `## Stage Report: implementation (cycle 1)` to the entity file with DONE entries per checklist item, grep/wc numbers, and the commit SHA.
+  This section.
+
+### Summary
+
+Cycle-1 swap applied per captain's pick: the bilingual T-3 tagline (which duplicated the About Me role list) is replaced with the English-only place-anchor `Between SF Bay and Taipei.` Single Edit on index.html line 2; styles.css untouched (cycle-0 `.hero-tagline` rule still applies). Page-weight net vs main is now −11 bytes (HTML slightly smaller than original). One commit on branch: 71be6b8.
