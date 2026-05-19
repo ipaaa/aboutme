@@ -139,3 +139,26 @@ Wrote the ideation body for Path A (minimal cut-and-paste extraction with no sel
 ### Summary
 
 Path A executed as a clean cut-and-paste: extracted 5290 bytes of inline CSS verbatim into `styles.css` (overwriting the gh-pages orphan) and swapped the `<style>` block in `index.html` for a `<link>` tag at the same position. All static checks hit exact predicted byte counts; class-attribute parity preserved (18=18). The only checklist deviation worth flagging: `grep -c -- '--type-base' styles.css` returns 2, not the predicted 1 — this reflects the actual source content (one `:root` declaration + one `clamp()` callsite), not a divergence from the verbatim extraction. Two independently revertable commits land on `spacedock-ensign/17-extract-inline-css`.
+
+## Stage Report: validation
+
+- DONE: AC-1 inline style block removed: `grep -c '<style>' index.html` returns 0; `grep -c '</style>' index.html` returns 0.
+  Verified at HEAD: both return 0. PASS.
+- DONE: AC-2 external stylesheet linked: `grep -c '<link rel="stylesheet" href="styles.css">' index.html` returns 1.
+  Verified at HEAD: returns 1. PASS.
+- DONE: AC-3 styles.css verbatim copy: diff of pre-#17 inline CSS vs current styles.css is empty.
+  Extracted inline `<style>` inner content from `git show 1c8f13c~:index.html` via Python regex (5290 bytes); `diff /tmp/inline-pre.css styles.css` returned empty (exit 0). Byte-for-byte identical. PASS.
+- DONE: AC-4 index.html size: `wc -c index.html` returns ~11503 (±20).
+  `wc -c index.html` returns exactly 11503 (matches implementer prediction). PASS.
+- DONE: AC-5 no `<body>` markup touched: diff scope confined to head; class-attr parity equal.
+  `git diff --stat 1c8f13c~ HEAD -- index.html` shows one file changed, +1/-286 in one hunk starting at line 1. Pre-#17 line 2 first 200 chars and post-#17 line 2 first 200 chars are byte-identical (same `<html ...><head><meta ...>` prefix). Class-attribute parity: BEFORE=18, AFTER=18, zero drift. PASS.
+- DONE: AC-6 responsive/a11y additions preserved: all eight grep counts hit expected values.
+  prefers-reduced-motion=1; prefers-color-scheme: dark=1; :focus-visible=1; --type-base=2; @media (min-width: 720px)=2 (≥1); clamp(=6 (≥4); animation-duration: 0.01ms=1; background: rgb(25, 25, 27)=1. All match expectations. PASS.
+- DONE: AC-7 page renders identically (PASS-BY-PROXY): HTTP server smoke test.
+  `python3 -m http.server 8002` in worktree; `curl -sI http://localhost:8002/` → HTTP/1.0 200 OK, Content-type: text/html, Content-Length: 11503; `curl -sI http://localhost:8002/styles.css` → HTTP/1.0 200 OK, Content-type: text/css, Content-Length: 5290. Server stopped after. PASS-BY-PROXY — captain to do real visual eye-diff at gate.
+- DONE: Two-commit hygiene check: exactly the expected commits, each independently revertable.
+  `git log --oneline main..HEAD`: `7fc1f91` stage report append, `e762a85` swap inline style for link, `ad22d48` extract into styles.css. Simulated reverse-patch of `e762a85` against current index.html produces a file whose `<style>` inner content matches pre-#17 byte-for-byte (5284 bytes, identical via Python compare). `ad22d48` touches only styles.css; reverting both restores pre-#17 state cleanly. PASS.
+
+### Summary
+
+All 7 ACs PASS (AC-7 PASS-BY-PROXY pending captain visual eye-diff at gate). The extraction is byte-perfect: `diff /tmp/inline-pre.css styles.css` is empty, index.html shrinks to exactly 11503 bytes, styles.css holds exactly 5290 bytes, class-attribute parity holds (18=18), and all eight responsive/a11y signatures grep as expected — including the implementer-flagged `--type-base=2` (one declaration + one clamp() reference, both verbatim from source). The two commits revert cleanly and independently. No spec violations or ambiguities surfaced; recommend captain approve at gate.
