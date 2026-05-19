@@ -244,3 +244,30 @@ Captain picked option (c) from validation gate: drop the entire "from the SF Bay
 ### Summary
 
 Cycle 1 ships the captain-chosen option (c) trim: dropped the entire "from the SF Bay Area" geographic phrase, landing the description at 144 chars / 146 bytes — comfortably under AC-3's ≤160 cap with a 16-char margin. All other ACs that were already passing remain passing; AC-3 now flips from FAIL to PASS. One nuance flagged for validator: the dispatch-supplied AC-7 verifier compares against `main:index.html`, but `main` has advanced (it now includes #13's OG block, which makes main larger than the worktree); the entity-intent read of "delta vs pre-#14 baseline" is +182 bytes and passes cleanly.
+
+## Stage Report: validation (cycle 1)
+
+Worktree HEAD at commit e00498a (`#14 cycle 1: trim description to 144 chars per captain feedback`). All static AC verifications re-run from worktree root against current `index.html`.
+
+- DONE: AC-1: `grep -c 'name="description"' index.html` → 1.
+  Returned `1`. PASS.
+- DONE: AC-2: extract the content value with python3 regex `<meta name="description" content="([^"]*)"`. Confirm it is byte-for-byte the new 144-char string above.
+  Extracted content equals expected string exactly (python3 equality check returns `True`). PASS.
+- DONE: AC-3: length check using robust extractor — expect 144 chars / 146 bytes; this should now PASS (was the original FAIL in cycle 0).
+  Extractor reports 144 visible chars / 146 UTF-8 bytes. PASS (≤160 cap). Resolves the cycle 0 FAIL.
+- DONE: AC-4: line position — description meta inside `<head>`, before `</head>`.
+  `<meta name="description"` on line 2; `</head>` on line 269. PASS.
+- DONE: AC-5: adjacency to viewport meta unchanged.
+  Text between viewport and description tags is the closing of viewport plus the opening of description, no interleaving tags. PASS.
+- SKIPPED: AC-6: SKIPPED (still — #13 cycle 1 also re-trimming; AC-6 identity check belongs at integration time when both branches land).
+  No `og:description` present on this branch; cross-tag identity check deferred to integration time.
+- DONE: AC-7: page-weight delta. Note that `main` has advanced (now includes #15's +446 byte lang-attribute additions, which is unrelated to this entity). The intent of AC-7 is "did this entity bloat the page" — measure as worktree HEAD vs the entity's own pre-change baseline (commit before c446267). Implementer reports +182 bytes for this edit; verify.
+  HEAD = 14263 bytes; pre-change baseline (c446267^) = 14081 bytes; delta = +182 bytes. Matches implementer's report. PASS (< 300).
+- DONE: AC-8: regression — `<meta name="viewport"` count, `<html lang="zh-Hant"`, `<title>ipa chiu 瞿筱葳</title>` all unchanged.
+  viewport count = 1 PASS; `<html lang="zh-Hant"` present PASS; `<title>ipa chiu 瞿筱葳</title>` present PASS.
+- DONE: Recommendation to gate: should be **approve to done** if AC-1 through AC-5 + AC-7 + AC-8 all PASS and AC-3 now passes the cap.
+  All required ACs PASS; AC-6 correctly SKIPPED pending #13 integration. **Recommend: approve to done.**
+
+### Summary
+
+Cycle 1 re-validation against HEAD e00498a confirms all required ACs PASS. AC-3 length cap is now satisfied (144 chars / 146 bytes, well under the 160 cap), resolving the cycle 0 failure. AC-7 page-weight delta is +182 bytes against the entity's pre-change baseline (c446267^), matching the implementer's measurement and comfortably under the 300-byte cap. AC-6 remains SKIPPED for integration-time verification when #13 also lands. Recommend captain approve to done.
