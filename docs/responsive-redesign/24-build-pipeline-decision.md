@@ -403,3 +403,32 @@ This entity (#24) ships **the build pipeline infrastructure only** — Eleventy 
 ### Summary
 
 Bootstrapped Eleventy 3.x pipeline (`package.json` + `.eleventy.js` + `src/` layout + GitHub Actions deploy) and re-flowed the Notion-flattened single-line `index.html` into four Nunjucks templates (`base.njk`, `hero.njk`, `social-row.njk`, `index.njk`) across 6 commits on `spacedock-ensign/24-build-pipeline`. Local clean build produces `_site/index.html` that is **whitespace-stripped byte-identical** to the pre-#24 `index.html` (9446 chars after collapsing whitespace; full grep-count parity on hero/social/meta/OG/profile/CSS markers). GitHub Pages source switched to `build_type=workflow` via `gh api`; CNAME and HTTPS preserved. No new content was added — strictly out-of-scope items (`_data/posts.js`, Latest-writing section, Subscribe CTA) were left untouched for #20. Hard scope rule observed: visitors cannot tell anything changed.
+
+## Stage Report: validation
+
+- DONE: Repo structure is correct.
+  `package.json` at root has `@11ty/eleventy ^3.0.0`, `@11ty/eleventy-fetch ^5.0.0`, `rss-parser ^3.13.0`, `"type": "module"`, `engines.node >=20`. `.eleventy.js` uses `export default`. `.github/workflows/deploy.yml` exists. `src/` contains `index.njk`, `_includes/{base,hero,social-row}.njk`, `styles.css`, `favicon-32.png`, `favicon-180.png`, `selfportrait.png`, `CNAME`. Root `index.html` is gone. `.gitignore` lists `_site/` and `node_modules/` (plus `.worktrees/`).
+- DONE: Local clean build.
+  `rm -rf _site && npx @11ty/eleventy` exited 0 in 8.73s; `[11ty] Copied 5 Wrote 1 file`.
+- DONE: Build output present.
+  `_site/` contains `index.html` (10842 B), `styles.css` (5298 B), `favicon-32.png` (5315 B), `favicon-180.png` (68964 B), `selfportrait.png` (905052 B), `CNAME` (10 B).
+- DONE: Built `_site/index.html` content equivalence to pre-#24 `index.html`.
+  `git show 871e791:index.html` → 10731 B; built → 10842 B. After whitespace-stripping both: 9446 chars on each side, byte-identical (Python equality `True`).
+- DONE: Grep parity against built output.
+  All 12 counts match spec: `hero hero--inline`=1, tagline=1, FACEBOOK=1, SUBSTACK=1, MASTODON=1, meta description=1, `og:`=9, `profile:`=2, `twitter:`=0, `prefers-reduced-motion`=1, `^h3 + hr {`=1, `prefers-color-scheme`=0.
+- DONE: AC-2 source legibility.
+  `src/index.njk`: 8475 B total, longest line 604 chars = 7.13% of total (< 20% threshold), 81 lines.
+- DONE: AC-3 deploy workflow structure.
+  `.github/workflows/deploy.yml` has build job (checkout@v4 → setup-node@v4 with node-version 20 + npm cache → `npm ci` → `npx @11ty/eleventy` → upload-pages-artifact@v3 path `_site`) → deploy job (uses `actions/deploy-pages@v4`, depends on build), permissions block (`contents: read`, `pages: write`, `id-token: write`), plus `concurrency: { group: pages, cancel-in-progress: false }`.
+- DONE: GitHub Pages source switched.
+  `gh api repos/ipaaa/aboutme/pages` returns `"build_type":"workflow"`, `"cname":"ipachiu.me"`, `"https_enforced":true`, certificate `"approved"`.
+- DONE: Smoke serve.
+  `python3 -m http.server 8009` from `_site/`: `curl -sI /` → `HTTP/1.0 200 OK` `Content-type: text/html` `Content-Length: 10842`. `curl -sI /styles.css` → `HTTP/1.0 200 OK` `Content-type: text/css` `Content-Length: 5298`. Server stopped cleanly.
+- DONE: Spot-check `src/index.njk` template.
+  Has Nunjucks frontmatter `layout: base.njk` and `title: ipa chiu 瞿筱葳`. References `{% include "hero.njk" %}` on line 9. `social-row.njk` exists as a partial but is NOT referenced from `index.njk` — the social row markup remains inlined for cycle-0 (matches implementer's note; preserved for future #21 reuse).
+- DONE: Final recommendation.
+  Approve to done. All 10 prior checklist items PASS with concrete evidence reproduced mechanically against worktree HEAD `a58be49`.
+
+### Summary
+
+Reproduced all 11 validation checks against worktree HEAD `a58be49` on branch `spacedock-ensign/24-build-pipeline`. Clean build is reproducible (exit 0, ~9s), output structure matches spec, and whitespace-stripped built `_site/index.html` is byte-identical to pre-#24 `index.html` at 9446 chars — confirming the migration preserves visitor-visible content exactly. GitHub Pages source is correctly switched to `build_type=workflow`, deploy workflow YAML has all required structure, and local smoke serve returns 200 OK with correct Content-Types. Recommendation: approve to done.
