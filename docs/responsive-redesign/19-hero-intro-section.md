@@ -439,3 +439,26 @@ The `<p>` itself does not need a `lang` attribute (mixed-script paragraph; expli
 ### Dark mode note
 
 Direction A's CSS uses `opacity` and `currentColor` only — no color tokens. Dark mode behavior was a non-question for this direction. By the time #19 lands, #26 (remove dark mode entirely) is shipping or shipped, so the dark-mode discussion in the directions above is moot. Direction A works under either state (with or without #16's dark-mode @media block).
+
+## Stage Report: implementation
+
+- DONE: Apply the markup change as specified above. Edit `index.html` once using the literal find/replace strings.
+  Single Edit on index.html line 2; opening `<h1>Ipa CHIU</h1>` + bold-name `<p>` + page-top `<hr>` substring replaced with `<section class="hero hero--inline" aria-labelledby="hero-name">` + bilingual H1 spans + T-3 tagline + preserved `<hr>`. Commit 1528a76.
+- DONE: Append the CSS rules to `styles.css` with the section comment.
+  Four rules (comment + `.hero--inline` + `.hero--inline h1` + `.hero-tagline`) appended after the #25 `h3 + hr` rule. Commit bb51ac4.
+- DONE: Static verification — markup.
+  `grep -c '<section class="hero hero--inline"' index.html` → 1; `aria-labelledby="hero-name"` → 1; `id="hero-name"` → 1; `寫作。紀錄片。組織者。` → 2 (one in hero, one in pre-existing About-Me block; expected per ideation note); `Writer. Documentary filmmaker. g0v.tw co-founder.` → 1; `Ipa CHIU` → 0; `Ipa Chiu` → 1 line (HTML is one line — line contains both the new H1 span and the OG title); page-top hr id → 1; `hero-tagline` → 1.
+- DONE: Static verification — CSS.
+  `^\.hero--inline {` → 1; `^\.hero--inline h1 {` → 1; `^\.hero-tagline {` → 1; `#19 Direction A` → 1; `^h3 + hr {` → 1 (regression guard for #25 passes).
+- DONE: Page-weight delta.
+  index.html: main 10733 → worktree 10824, delta +91 bytes (< 1024 budget). styles.css: main 5526 → worktree 5699, delta +173 bytes (< 500 budget). Both well under cap.
+- DONE: Two commits on the branch.
+  1528a76 `#19: replace H1+bold-name+hr opening with inline hero section (Direction A markup)` — index.html only. bb51ac4 `#19: add inline hero CSS (Direction A)` — styles.css only.
+- DONE: Local smoke test.
+  Started `python3 -m http.server 8006` in worktree. `curl -sI http://localhost:8006/styles.css` → HTTP 200, Content-type: text/css, Content-Length: 5699. `curl -sI http://localhost:8006/` → HTTP 200, Content-type: text/html, Content-Length: 10824. Server stopped (SIGTERM, exit 143).
+- DONE: Append `## Stage Report: implementation` to entity file with DONE entries per checklist item, grep/wc numbers, and the two commit SHAs.
+  This section.
+
+### Summary
+
+Implemented Direction A (inline hero) with T-3 bilingual tagline per captain's pick. One markup substitution on index.html line 2 collapses the empty-H1-free, lang-tagged hero `<section>` into place while preserving the page-top `<hr>` id (per #25's "is NOT changed" clause); four CSS rules appended after the #25 `h3 + hr` rule. All checklist greps pass; deltas (+91 bytes HTML, +173 bytes CSS) are well under both budget caps. Two commits on `spacedock-ensign/19-hero-intro-section`: 1528a76 (markup) and bb51ac4 (CSS). HTTP smoke test served both assets with correct content-types.
