@@ -1,16 +1,17 @@
 ---
 id: qcf4hws58havd84aqbkc6kpk
 title: Mobile-friendly navigation and footer
-status: validation
+status: done
 source: audit-current-site PR #1
 started: 2026-05-18T02:16:05Z
-completed:
-verdict:
+completed: 2026-05-19T00:06:02Z
+verdict: PASSED
 score:
-worktree: .worktrees/spacedock-ensign-07-mobile-friendly-navigation-and-footer
+worktree: 
 issue:
 pr: #9
 mod-block: 
+archived: 2026-05-19T00:06:02Z
 ---
 
 ## Problem
