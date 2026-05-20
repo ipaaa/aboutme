@@ -159,3 +159,67 @@ Ship **W-3 (ProfilePage) + P-1 (Person only, no Book schemas)** as v1. Direct em
 ### Summary
 
 Ideation lands on `ProfilePage` + single `Person` mainEntity, embedded as a static JSON-LD block before `</head>` in `base.njk`. Every Person field maps to existing visible content or existing meta — no invented data. Books deferred cleanly because we lack ISBN/publisher/year and the captain has not authorized inventing them; the follow-on path via `@graph` is documented. Payload is ~1 KB, validation path is concrete and gateable.
+
+## Stage Report: implementation
+
+- DONE: Step 1 — Read `src/_includes/base.njk`. Located `<link rel="stylesheet" href="styles.css">` on line 21 as the last `<head>` element before `</head>`.
+- DONE: Step 2 — Inserted the JSON-LD `<script type="application/ld+json">` block immediately after the stylesheet `<link>` and immediately before `</head>`. Payload pretty-printed with two-space indent, content byte-identical to the captain-approved JSON.
+- DONE: Step 3 — Static verification on `src/_includes/base.njk` (all counts via `grep -c`):
+  - `'<script type="application/ld+json">'` → 1 ✓
+  - `'"@context": "https://schema.org"'` → 1 ✓
+  - `'"@type": "ProfilePage"'` → 1 ✓
+  - `'"@type": "Person"'` → 1 ✓
+  - `'https://facebook.com/ipa.chiu/'` → 1 ✓
+  - `'https://ipachiu.substack.com/'` → 1 ✓
+  - `'https://g0v.social/@ipa'` → 1 ✓
+  - `'瞿筱葳'` → 3 (NOTE: checklist expected 1, but the pre-existing `og:title` and `og:image:alt` meta tags already contained `瞿筱葳` twice before this change; our insertion added exactly one new occurrence — the `alternateName` field — bringing the total to 3. Insertion correctness confirmed via the other seven counts and via the JSON parse below.)
+- DONE: Step 4 — Built with `npx @11ty/eleventy`. Exit code 0. Wrote `_site/index.html` (1 file, copied 5 assets, 0.04s). Verification of `_site/index.html`:
+  - `grep -c '<script type="application/ld+json">' _site/index.html` → 1 ✓
+  - Extracted JSON-LD via python3 regex + `json.loads()` — parsed without error ✓
+  - `@context == "https://schema.org"` ✓
+  - `@type == "ProfilePage"` ✓
+  - `mainEntity["@type"] == "Person"` ✓
+  - `mainEntity["sameAs"]` is a list of length 3 containing exactly the three approved URLs ✓
+  - `grep -oc 'property="og:' _site/index.html` → 9 ✓
+  - `grep -oc 'property="profile:' _site/index.html` → 2 ✓
+  - `grep -c '<meta name="description"' _site/index.html` → 1 ✓
+  - `grep -c '<title>' _site/index.html` → 1 ✓
+  - `grep -c '<link rel="stylesheet"' _site/index.html` → 1 ✓
+  - `grep -c '<link rel="icon"' _site/index.html` → 1 ✓
+  - `grep -c '<link rel="apple-touch-icon"' _site/index.html` → 1 ✓
+- DONE: Step 5 — Page-weight delta. New `_site/index.html` is **11865 bytes**. Pre-#22 baseline reported as 10842 bytes. Delta = **+1023 bytes**, within the expected +800 to +1200 range from the JSON-LD payload.
+- DONE: Step 6 — Single commit on branch `spacedock-ensign/22-person-schema`. Message: `#22: add ProfilePage + Person JSON-LD to base.njk`. Files: only `src/_includes/base.njk` (35 insertions, 0 deletions). Commit SHA: **d948dfe48000e552dc22db689a79ad44cf70b678**.
+- DONE: Step 7 — This Stage Report appended.
+
+### Summary
+
+Implementation complete. The captain-approved JSON-LD payload (ProfilePage wrapper + Person mainEntity, no Books) is now embedded verbatim in `src/_includes/base.njk` between the stylesheet `<link>` and the closing `</head>`. Eleventy build clean; all head-integrity counts unchanged; JSON parses; sameAs membership exact. Page-weight delta is +1023 bytes (gzipped delta will be much smaller and trivially under the 1.5 KB AC-8 ceiling). Live ACs AC-9 and AC-10 (Google Rich Results Test, Schema Markup Validator) remain captain-action post-deploy, gated as PASS-BY-PROXY per the ideation report.
+
+## Stage Report: validation
+
+- DONE: Clean build
+  `rm -rf _site && npx @11ty/eleventy` exited 0; wrote 1 file, copied 5 assets in 0.04s.
+- DONE: AC-1 — exactly one JSON-LD script
+  `grep -c '<script type="application/ld+json">' _site/index.html` → 1.
+- DONE: AC-2 — JSON parses validly
+  python3 regex-extracted block; `json.loads()` returned without exception.
+- DONE: AC-3 — context + type correct
+  Parsed `@context == "https://schema.org"` and `@type == "ProfilePage"`.
+- DONE: AC-4 — Person fields present
+  `mainEntity["@type"] == "Person"`; all 12 required fields present (name, alternateName, givenName, familyName, url, image, jobTitle, description, knowsLanguage, nationality, affiliation, sameAs).
+- DONE: AC-5 — sameAs exactly 3 URLs
+  `mainEntity.sameAs` is a list of length 3 containing exactly the three approved URLs (facebook, substack, g0v.social), no others.
+- DONE: AC-6 — image URL + asset exists
+  `mainEntity.image == "https://ipachiu.me/selfportrait.png"`; `src/selfportrait.png` present (905052 bytes).
+- DONE: AC-7 — no head regression
+  viewport=1, description=1, og=9, profile=2, title=1, stylesheet=1, icon=1, apple-touch-icon=1. Charset note: source uses `<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>` (pre-existing form, verified via `git show HEAD~1:src/_includes/base.njk`), so the literal `<meta charset` grep returns 0 — not a regression caused by #22.
+- DONE: AC-8 — page weight
+  `wc -c _site/index.html` → 11865 bytes. Delta vs 10842 baseline = +1023 bytes, well under the 1.5 KB AC-8 ceiling.
+- SKIPPED: AC-9 — Google Rich Results Test (live)
+  PASS-BY-PROXY: requires deployed URL. AC-2/3/4 satisfied locally; captain action post-merge.
+- SKIPPED: AC-10 — schema.org Validator (live)
+  PASS-BY-PROXY: requires deployed URL. Captain action post-merge.
+
+### Summary
+
+All static ACs pass; both live ACs are PASS-BY-PROXY pending post-merge captain action. The one apparent miss in AC-7 (literal `<meta charset` grep returns 0) is explained: the source template uses the `http-equiv="Content-Type"` form for charset, which predates #22 and is preserved unchanged. Recommend approve to done.
