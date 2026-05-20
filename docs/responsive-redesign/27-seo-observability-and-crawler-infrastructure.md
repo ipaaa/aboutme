@@ -7,7 +7,7 @@ started:
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-27-seo-observability
 issue:
 pr:
 mod-block:

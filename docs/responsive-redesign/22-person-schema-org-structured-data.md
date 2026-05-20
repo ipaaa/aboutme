@@ -1,13 +1,13 @@
 ---
 id: g3bp0nwbecn8ex29mntqagjh
 title: Person schema.org structured data
-status: ideation
+status: implementation
 source: FO upgrade suggestion
 started: 2026-05-19T23:05:00Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-22-person-schema
 issue:
 pr:
 mod-block:
