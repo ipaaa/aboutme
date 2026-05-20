@@ -6,6 +6,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "src/CNAME": "CNAME" });
   eleventyConfig.addPassthroughCopy({ "src/robots.txt": "robots.txt" });
   eleventyConfig.addPassthroughCopy({ "src/sitemap.xml": "sitemap.xml" });
+  eleventyConfig.addPassthroughCopy({ "src/googleb524dd295ffe1b52.html": "googleb524dd295ffe1b52.html" });
   return {
     dir: { input: "src", output: "_site", includes: "_includes", data: "_data" },
     htmlTemplateEngine: "njk",
