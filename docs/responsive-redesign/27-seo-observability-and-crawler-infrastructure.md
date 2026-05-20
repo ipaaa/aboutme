@@ -1,15 +1,15 @@
 ---
 id: 3k2eb69p67btp09m14k5a4tb
 title: SEO observability + crawler infrastructure (GSC + Bing + robots.txt + sitemap.xml)
-status: validation
+status: done
 source: captain question about search ranking; FO recommendation as long-term groundwork
 started: 2026-05-19T23:05:00Z
-completed:
-verdict:
-score:
-worktree: .worktrees/spacedock-ensign-27-seo-observability
+completed: 2026-05-20T02:24:14Z
+verdict: approved
+score: 1.0
+worktree:
 issue:
-pr:
+pr: 21
 mod-block:
 ---
 
