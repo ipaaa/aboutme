@@ -1,0 +1,6 @@
+{
+  "_comment_googleVerificationToken": "Paste the verification token from Google Search Console (search.google.com/search-console) here after registering https://ipachiu.me/ as a URL-prefix property. The base.njk template will then emit the <meta name=\"google-site-verification\"> tag automatically on the next build.",
+  "googleVerificationToken": "",
+  "_comment_bingVerificationToken": "Optional. Leave empty if Bing verification is done via 'Import from Google Search Console' in Bing Webmaster Tools (the recommended path). Only fill in if the GSC-import flow fails and a direct Bing <meta name=\"msvalidate.01\"> tag is needed as fallback.",
+  "bingVerificationToken": ""
+}
