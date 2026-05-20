@@ -3,6 +3,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% if seo.googleVerificationToken %}<meta name="google-site-verification" content="{{ seo.googleVerificationToken }}">{% endif %}
+{% if seo.bingVerificationToken %}<meta name="msvalidate.01" content="{{ seo.bingVerificationToken }}">{% endif %}
 <meta name="description" content="Writer, g0v.tw co-founder, documentary filmmaker. Bilingual personal site of Hsiao-wei Chiu — books, civic-tech community work, and family life.">
 <meta property="og:type" content="profile">
 <meta property="og:site_name" content="ipachiu.me">
