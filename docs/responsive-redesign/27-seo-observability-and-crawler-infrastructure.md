@@ -1,9 +1,9 @@
 ---
 id: 3k2eb69p67btp09m14k5a4tb
 title: SEO observability + crawler infrastructure (GSC + Bing + robots.txt + sitemap.xml)
-status: backlog
+status: validation
 source: captain question about search ranking; FO recommendation as long-term groundwork
-started:
+started: 2026-05-19T23:05:00Z
 completed:
 verdict:
 score:
