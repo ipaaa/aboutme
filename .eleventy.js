@@ -4,6 +4,8 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "src/favicon-180.png": "favicon-180.png" });
   eleventyConfig.addPassthroughCopy({ "src/selfportrait.png": "selfportrait.png" });
   eleventyConfig.addPassthroughCopy({ "src/CNAME": "CNAME" });
+  eleventyConfig.addPassthroughCopy({ "src/robots.txt": "robots.txt" });
+  eleventyConfig.addPassthroughCopy({ "src/sitemap.xml": "sitemap.xml" });
   return {
     dir: { input: "src", output: "_site", includes: "_includes", data: "_data" },
     htmlTemplateEngine: "njk",
