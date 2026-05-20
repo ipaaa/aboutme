@@ -232,3 +232,34 @@ Ideation lands the full decision set the FO dispatch surfaced: five named decisi
 ### Summary
 
 Implemented bundle R-1 + S-1 + V-G-1 + V-B-2 + T-2 in six logical commits. Build passes cleanly with empty tokens — conditional Nunjucks blocks suppress both verification meta tags until captain pastes a real token into `src/_data/seo.json`, at which point next deploy emits the GSC tag (and optional Bing tag) with zero further code changes. Index.html grew by 2 bytes (Nunjucks whitespace from the conditional blocks); no removals, no visible content change. All static checks and build artefact checks per the dispatch checklist verified.
+
+## Stage Report: validation
+
+- DONE: Run a clean build
+  `rm -rf _site && npx @11ty/eleventy` exit 0; `Copied 7 Wrote 1 file in 0.04 seconds (v3.1.5)`.
+- DONE: AC-1 robots.txt builds
+  `_site/robots.txt` exists, 64B, `cmp src/robots.txt _site/robots.txt` clean (byte-identical). Contains `Sitemap: https://ipachiu.me/sitemap.xml`. (~60B target met — actual 64B.)
+- DONE: AC-2 sitemap.xml builds + validates
+  `_site/sitemap.xml` exists, 262B. `python3 xml.etree.ElementTree.parse` no exception. Contains `<loc>https://ipachiu.me/</loc>`.
+- DONE: AC-3 GSC verification tag suppressed (empty token)
+  `grep -c 'google-site-verification' _site/index.html` → 0. Conditional in `base.njk` suppresses correctly.
+- DONE: AC-4 Bing verification tag suppressed (empty token)
+  `grep -c 'msvalidate.01' _site/index.html` → 0. Same suppression mechanism.
+- SKIPPED: AC-5 captain confirmation (PASS-BY-PROXY)
+  GSC + Bing dashboard verification — captain post-deploy action, deferred per checklist note.
+- SKIPPED: AC-6 sitemap submission to GSC (PASS-BY-PROXY)
+  Captain post-deploy action; documented in `docs/seo-deploy-checklist.md` steps 4 and 6.
+- DONE: AC-7 page-weight delta
+  `wc -c _site/index.html` → 10844 (baseline 10842 → +2B from Nunjucks whitespace). Token-populated probe build → 10909 (+67B). Both well under 500B AC-7 ceiling.
+- DONE: AC-8 head regression check
+  meta viewport=1, meta description=1, og:=9, profile:=2, title=1, stylesheet=1, icon=1, apple-touch-icon=1. NOTE: `<meta charset` count is 0 — the site uses the pre-existing `<meta http-equiv="Content-Type" content="text/html; charset=utf-8">` (confirmed at HEAD~6 in `base.njk:4`); this is not a regression from #27, just a checklist expectation mismatch with the existing template. All other counts match the dispatched expected values exactly.
+- DONE: Verify documentation exists
+  `docs/seo-deploy-checklist.md` present; 7 numbered captain post-deploy steps present (GSC register, paste token, push/verify, submit GSC sitemap, Bing import-from-GSC, submit Bing sitemap, optional email notifications).
+- DONE: Verify seo.json is valid + empty
+  `python3 json.load` OK; `googleVerificationToken == ""` and `bingVerificationToken == ""` both confirmed.
+- DONE: Verify token-fill mechanism works (probe test)
+  Set `googleVerificationToken="TEST-TOKEN-PROBE"` in `src/_data/seo.json`, rebuilt: `grep 'google-site-verification' _site/index.html` → 1, exact line emitted: `<meta name="google-site-verification" content="TEST-TOKEN-PROBE">`, `grep -c 'TEST-TOKEN-PROBE'` → 1, page weight 10909B (+67B). Restored token to `""`, rebuilt, suppression confirmed (count=0, weight back to 10844B). Probe not committed — `git status` clean.
+
+### Summary
+
+All validation checks pass. Build is clean, robots.txt and sitemap.xml ship byte-identically with valid contents, both verification meta tags are correctly suppressed when their tokens are empty, and the probe test confirms the token-fill mechanism activates the GSC meta tag on the next build with no further code changes. AC-5 and AC-6 are pass-by-proxy (captain post-deploy actions). One note on AC-8: the existing template uses `<meta http-equiv="Content-Type" ...; charset=utf-8">` rather than `<meta charset>` — this predates #27 and is not a regression. Recommendation: approve to done.
