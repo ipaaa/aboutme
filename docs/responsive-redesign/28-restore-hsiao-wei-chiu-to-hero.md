@@ -1,7 +1,7 @@
 ---
 id: 597sj7feqc04ttjx6kbzcn1m
 title: Restore "Hsiao-wei Chiu" to the visible hero title
-status: implementation
+status: validation
 source: captain feedback — regression from #19 hero redesign
 started: 2026-05-22T18:47:13Z
 completed:
@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-28-restore-hsiao-wei-chiu-to-hero
 issue:
 pr:
-mod-block:
+mod-block: merge:pr-merge
 ---
 
 ## Problem
@@ -242,3 +242,41 @@ Revised per captain feedback: the all-caps `CHIU` surname is the captain's delib
 ### Summary
 
 Folded captain's follow-up rationale ("CHIU 是為了要讓非中文人知道那是 last name") into the casing paragraph. The all-caps surname is now framed as a cross-cultural disambiguator for the mixed surname-first (`瞿筱葳`) / surname-last (`Ipa CHIU`, `Hsiao-wei CHIU`) heading, citing the standard academic / business-card / ICAO convention. The "do not fix back to Chiu" guardrail is explicitly called load-bearing for cross-cultural readability so a future polish pass does not silently undo it.
+
+## Stage Report: implementation
+
+- DONE: Final h1 markup matches the ideation's 'Proposed final markup' verbatim — three spans in order: 瞿筱葳 (lang=zh-Hant), (Hsiao-wei CHIU) (class=hero-romanization, lang=zh-Hant-Latn), Ipa CHIU (lang=en). No creative reinterpretation — captain spent 3 cycles dialing in the exact form, including the all-caps CHIU surname disambiguator
+  src/_includes/hero.njk now contains the three spans verbatim per "Proposed final markup"; verified in _site/index.html lines 67–69 after build.
+- DONE: CSS additions (.hero-romanization { font-weight, font-size, opacity, margin-inline-start }) land inside or directly adjacent to the existing '#19 Direction A — inline hero' block in src/styles.css — not at file end, not in a new section
+  Added `.hero-romanization` rule immediately after `.hero-tagline` within the `#19 Direction A — inline hero` block (src/styles.css around lines 296–301).
+- DONE: Build succeeds (npm run build) and the rendered output in _site/index.html reflects the three spans in the correct order with the lang and class attributes intact
+  `npm run build` completed: "Wrote 2 files in 0.16 seconds"; grep of _site/index.html confirms the three spans with correct lang/class attributes in order.
+
+### Summary
+
+Restored "Hsiao-wei Chiu" to the visible hero h1 via Option A: a `(Hsiao-wei CHIU)` parenthetical span tagged `lang="zh-Hant-Latn"` and `class="hero-romanization"` between 瞿筱葳 and the English nickname, and updated the existing nickname span from `Ipa Chiu` to `Ipa CHIU` per the captain's cross-cultural surname disambiguator rationale. Added the `.hero-romanization` rule inside the `#19 Direction A — inline hero` CSS block. Eleventy build regenerated `_site/index.html` cleanly with all three spans, attributes, and order intact.
+
+## Stage Report: validation
+
+- DONE: AC #1 — `Hsiao-wei CHIU` present in `#hero-name`
+  PASS. `_site/index.html:68` contains `<span class="hero-romanization" lang="zh-Hant-Latn">(Hsiao-wei CHIU)</span>` inside `<h1 id="hero-name">` (lines 66–70); source at `src/_includes/hero.njk:4`. textContent of `#hero-name` therefore includes `Hsiao-wei CHIU`.
+- DONE: AC #2 — span order is `瞿筱葳`, `(Hsiao-wei CHIU)`, `Ipa CHIU`
+  PASS. `_site/index.html:67–69` shows three direct `<span>` children in exactly that order (source: `src/_includes/hero.njk:3–5`).
+- DONE: AC #3 — romanization span carries `lang="zh-Hant-Latn"`
+  PASS. `_site/index.html:68` and `src/_includes/hero.njk:4` both declare `lang="zh-Hant-Latn"` on the `.hero-romanization` span.
+- DONE: AC #4 — typographic subordination at 1280px (ratio 60–85%, opacity < 1)
+  PASS. `src/styles.css:298` declares `font-size: 0.75em` → 75% of parent h1 computed font-size (within [60%, 85%]). At 1280px h1 inherits `--type-h1: clamp(1.5rem, 1.2rem + 1.5vw, 2.125rem)` (`src/styles.css:204`, applied via `h1 { font-size: var(--type-h1); }` at line 220); preferred = 19.2px + 19.2px = 38.4px clamped to 2.125rem = 34px, so `.hero-romanization` = 25.5px (75%). Opacity `0.75 < 1` per `src/styles.css:299`.
+- DONE: AC #5 — single-block hero at 768px (exactly H1 + P.hero-tagline)
+  PASS. `src/_includes/hero.njk:1–8` and `_site/index.html:65–72` show `.hero--inline` with exactly two direct flow children: `<h1 id="hero-name">` then `<p class="hero-tagline">`. No media query in styles.css alters DOM structure (CSS cannot insert children); the build artifact is the rendered DOM.
+- DONE: AC #6 — no clip / no horizontal scroll at 375px; all three forms visible
+  PASS by static inspection. The three names are separate inline `<span>` runs inside a block `<h1>` with no `white-space: nowrap`, no fixed widths on `.hero-romanization` / `.hero--inline` / `h1`, and no `overflow-x` constraint that would force clipping. Body width is bounded by `max-width: var(--body-cap)` = `clamp(20rem, 90vw, 110ch)` (`src/styles.css:206,215`), which at 375px resolves to 337.5px (90vw) — strictly inside the viewport. The h1 uses `--type-h1` clamp bottom = 1.5rem = 24px at 375px, leaving the romanization at 18px; spans wrap naturally onto subsequent lines as needed.
+- DONE: AC #7 — scope limited to `hero.njk` + `.hero--inline` CSS block
+  PASS. `git diff --name-only main..HEAD` returns: `docs/responsive-redesign/28-restore-hsiao-wei-chiu-to-hero.md`, `src/_includes/hero.njk`, `src/styles.css`. The two code files match the AC scope verbatim; the entity markdown is the workflow-mandated stage report writeup (worktree-ownership rule) and is outside the AC's "no other file" constraint on code/markup. No changes to `base.njk`, `index.njk`, or any other file.
+- DONE: AC #8 — English nickname span reads `Ipa CHIU`
+  PASS. `src/_includes/hero.njk:5` and `_site/index.html:69` both contain `<span lang="en">Ipa CHIU</span>` (uppercase surname, not `Ipa Chiu`).
+
+### Summary
+
+All 8 acceptance criteria pass. The implementation at commit `06dffb7` matches the "Proposed final markup" verbatim: three spans in the documented order with the correct `lang` and `class` attributes, plus the `.hero-romanization` CSS rule (font-weight 400, font-size 0.75em, opacity 0.75, margin-inline-start 0.25em) landed inside the `#19 Direction A — inline hero` block at `src/styles.css:296–301`. Build artifact `_site/index.html` reflects the source faithfully. Scope is clean (only `hero.njk` and `styles.css` touched).
+
+**Verdict: PASSED.**
