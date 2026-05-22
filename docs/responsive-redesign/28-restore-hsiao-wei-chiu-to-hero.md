@@ -1,13 +1,13 @@
 ---
 id: 597sj7feqc04ttjx6kbzcn1m
 title: Restore "Hsiao-wei Chiu" to the visible hero title
-status: ideation
+status: implementation
 source: captain feedback — regression from #19 hero redesign
 started: 2026-05-22T18:47:13Z
 completed:
 verdict:
 score:
-worktree:
+worktree: .worktrees/spacedock-ensign-28-restore-hsiao-wei-chiu-to-hero
 issue:
 pr:
 mod-block:
