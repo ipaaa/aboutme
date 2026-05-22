@@ -10,7 +10,7 @@ score:
 worktree: .worktrees/spacedock-ensign-28-restore-hsiao-wei-chiu-to-hero
 issue:
 pr:
-mod-block:
+mod-block: merge:pr-merge
 ---
 
 ## Problem
