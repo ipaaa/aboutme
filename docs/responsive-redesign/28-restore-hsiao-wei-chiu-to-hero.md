@@ -63,8 +63,8 @@ Three concrete placements were sketched against the current 7-line `hero.njk`. T
 ```html
 <h1 id="hero-name">
   <span lang="zh-Hant">瞿筱葳</span>
-  <span class="hero-romanization" lang="zh-Hant-Latn">(Hsiao-wei Chiu)</span>
-  <span lang="en">Ipa Chiu</span>
+  <span class="hero-romanization" lang="zh-Hant-Latn">(Hsiao-wei CHIU)</span>
+  <span lang="en">Ipa CHIU</span>
 </h1>
 ```
 
@@ -79,7 +79,7 @@ Three concrete placements were sketched against the current 7-line `hero.njk`. T
 
 - **Bilingual semantics:** strongest — directly mirrors the legacy `瞿筱葳 (Hsiao-wei CHIU)` pairing and tags the romanization as `zh-Hant-Latn` (Hanyu/Wade-Giles romanization of the Chinese name), so it reads as a transliteration of 瞿筱葳, not a separate English identity.
 - **Visual weight:** softened by `0.75em` + reduced opacity so the h1 silhouette stays close to today's two-name balance; the parenthetical is a satellite of 瞿筱葳, not a third co-equal name.
-- **Mobile reflow (≤ 375px):** the inline-block `<span>`s already wrap as the h1 grows; the romanization span sits between 瞿筱葳 and Ipa Chiu and breaks cleanly onto its own line at narrow widths because each span is a separate inline run.
+- **Mobile reflow (≤ 375px):** the inline-block `<span>`s already wrap as the h1 grows; the romanization span sits between 瞿筱葳 and `Ipa CHIU` and breaks cleanly onto its own line at narrow widths because each span is a separate inline run.
 - **Risk:** at the narrowest viewports the h1 becomes three lines instead of two, which costs vertical space above the fold.
 
 ### Option B — dedicated subtitle line under the h1
@@ -125,9 +125,9 @@ Three concrete placements were sketched against the current 7-line `hero.njk`. T
 
 ## Selected approach — Option A
 
-Option A is selected. It restores the legacy `瞿筱葳 (Hsiao-wei CHIU)` reading exactly (a Chinese name with its romanization in parentheses), keeps the h1 as the single hero element (no new block-level line between h1 and tagline), and uses typographic subordination (`0.75em`, opacity 0.75) so the existing two-name silhouette is preserved. The parenthetical sits inside the h1 so screen readers and copy-paste pick up "瞿筱葳 (Hsiao-wei Chiu) Ipa Chiu" as one heading. `lang="zh-Hant-Latn"` correctly tags the romanization as the Latin-script form of the Traditional Chinese name.
+Option A is selected. It restores the legacy `瞿筱葳 (Hsiao-wei CHIU)` reading exactly (a Chinese name with its romanization in parentheses), keeps the h1 as the single hero element (no new block-level line between h1 and tagline), and uses typographic subordination (`0.75em`, opacity 0.75) so the existing two-name silhouette is preserved. The parenthetical sits inside the h1 so screen readers and copy-paste pick up "瞿筱葳 (Hsiao-wei CHIU) Ipa CHIU" as one heading. `lang="zh-Hant-Latn"` correctly tags the romanization as the Latin-script form of the Traditional Chinese name.
 
-Casing follows the modern site convention ("Chiu", not "CHIU") — the legacy all-caps `CHIU` was a Notion export artifact and the rest of the site already uses title-case `Chiu`.
+**Surname casing: `CHIU` (all caps) for both English-side names.** Per captain feedback ("我要 Ipa CHIU 和 Hsiao-wei CHIU 都有"), the all-caps surname is the captain's deliberate stylization, not a Notion export artifact to normalize away. This scope expansion changes both the new romanization parenthetical (`Hsiao-wei CHIU`) AND the existing English nickname span (which was previously `Ipa Chiu` and becomes `Ipa CHIU`). This intentionally diverges from the title-case `Chiu` used in metadata (`base.njk` keeps title-case `Chiu` per Schema.org / og: conventions and stays out of scope) and elsewhere on the site — the hero is the only place the all-caps surname stylization applies. Implementers: do not "fix" `CHIU` to `Chiu` in the hero to match other on-page references.
 
 ### Proposed final markup
 
@@ -135,8 +135,8 @@ Casing follows the modern site convention ("Chiu", not "CHIU") — the legacy al
 <section class="hero hero--inline" aria-labelledby="hero-name">
   <h1 id="hero-name">
     <span lang="zh-Hant">瞿筱葳</span>
-    <span class="hero-romanization" lang="zh-Hant-Latn">(Hsiao-wei Chiu)</span>
-    <span lang="en">Ipa Chiu</span>
+    <span class="hero-romanization" lang="zh-Hant-Latn">(Hsiao-wei CHIU)</span>
+    <span lang="en">Ipa CHIU</span>
   </h1>
   <p class="hero-tagline" lang="en">Between the SF Bay Area and Taipei.</p>
 </section>
@@ -156,15 +156,15 @@ Add to the `#19 Direction A — inline hero` block in `src/styles.css`:
 ## Acceptance criteria
 
 1. **String present in rendered hero h1.**
-   The substring `Hsiao-wei Chiu` appears as visible text inside the `#hero-name` element on the home page.
-   Verified by: opening `/` in a browser and reading the h1, and `document.getElementById('hero-name').textContent.includes('Hsiao-wei Chiu') === true` in DevTools console.
+   The substring `Hsiao-wei CHIU` (all-caps surname) appears as visible text inside the `#hero-name` element on the home page.
+   Verified by: opening `/` in a browser and reading the h1, and `document.getElementById('hero-name').textContent.includes('Hsiao-wei CHIU') === true` in DevTools console.
 
 2. **Romanization is wrapped in parentheses and follows 瞿筱葳.**
-   Inside `#hero-name`, the document order is: `瞿筱葳`, then `(Hsiao-wei Chiu)`, then `Ipa Chiu`.
-   Verified by: `Array.from(document.querySelectorAll('#hero-name > span')).map(s => s.textContent)` returns `['瞿筱葳', '(Hsiao-wei Chiu)', 'Ipa Chiu']`.
+   Inside `#hero-name`, the document order is: `瞿筱葳`, then `(Hsiao-wei CHIU)`, then `Ipa CHIU`.
+   Verified by: `Array.from(document.querySelectorAll('#hero-name > span')).map(s => s.textContent)` returns `['瞿筱葳', '(Hsiao-wei CHIU)', 'Ipa CHIU']`.
 
 3. **Romanization is language-tagged as Latin romanization of the Traditional Chinese name.**
-   The span containing `(Hsiao-wei Chiu)` carries `lang="zh-Hant-Latn"`.
+   The span containing `(Hsiao-wei CHIU)` carries `lang="zh-Hant-Latn"`.
    Verified by: `document.querySelector('#hero-name .hero-romanization').getAttribute('lang') === 'zh-Hant-Latn'`.
 
 4. **Typographic subordination at 1280px (desktop).**
@@ -177,11 +177,15 @@ Add to the `#19 Direction A — inline hero` block in `src/styles.css`:
 
 6. **Mobile reflow does not clip at 375px.**
    At viewport width 375px (iPhone SE / standard mobile), no part of `#hero-name` is horizontally clipped or causes horizontal page scroll; the h1 wraps to at most 3 lines and all three name forms remain visible.
-   Verified by: in DevTools device emulation at 375×667, `document.documentElement.scrollWidth <= document.documentElement.clientWidth` (no horizontal scroll), and visual inspection that `瞿筱葳`, `(Hsiao-wei Chiu)`, and `Ipa Chiu` are all on-screen.
+   Verified by: in DevTools device emulation at 375×667, `document.documentElement.scrollWidth <= document.documentElement.clientWidth` (no horizontal scroll), and visual inspection that `瞿筱葳`, `(Hsiao-wei CHIU)`, and `Ipa CHIU` are all on-screen.
 
 7. **Scope is limited to `hero.njk` and the `.hero--inline` CSS block.**
    The diff for this task touches only `src/_includes/hero.njk` and `src/styles.css` (additions inside or adjacent to the `#19 Direction A — inline hero` block, lines ~285–295). No changes to `src/_includes/base.njk`, `src/index.njk`, or any other file.
    Verified by: `git diff --name-only` against the pre-change tree lists only those two paths.
+
+8. **Existing English nickname span is updated to all-caps surname.**
+   The English nickname span inside `#hero-name` reads `Ipa CHIU` (uppercase surname), not `Ipa Chiu`. This captures the part of the scope expansion that restyles the pre-existing span, not just the addition of the new romanization span.
+   Verified by: `document.querySelector('#hero-name span[lang="en"]').textContent === 'Ipa CHIU'`.
 
 ## Test plan
 
@@ -196,7 +200,7 @@ Viewports under test: 375px (mobile), 768px (tablet), 1280px (desktop).
 3. At 1280px, run AC #4's computed-style check.
 4. At 375px, run AC #6's scrollWidth check and confirm visually that all three forms are on-screen without horizontal scroll.
 5. Run `git diff --name-only` to confirm AC #7.
-6. Manual screen-reader smoke check: hover/focus the h1 and confirm reading order is `瞿筱葳, (Hsiao-wei Chiu), Ipa Chiu` (Mac VoiceOver via Cmd+F5, navigate by heading).
+6. Manual screen-reader smoke check: hover/focus the h1 and confirm reading order is `瞿筱葳, (Hsiao-wei CHIU), Ipa CHIU` (Mac VoiceOver via Cmd+F5, navigate by heading).
 
 ## Stage Report: ideation
 
@@ -210,3 +214,16 @@ Viewports under test: 375px (mobile), 768px (tablet), 1280px (desktop).
 ### Summary
 
 Sketched three placement options for restoring "Hsiao-wei Chiu" to the hero and selected Option A: an inline parenthetical span inside the existing h1, sitting between 瞿筱葳 and Ipa Chiu, tagged `lang="zh-Hant-Latn"` and visually subordinated via 0.75em + opacity 0.75. The legacy `瞿筱葳 (Hsiao-wei CHIU)` reading is preserved while keeping the calmer #19 inline-hero silhouette. Seven viewport-anchored ACs cover string presence, span order, language tagging, typographic subordination at 1280px, hero structure at 768px, no-clip mobile reflow at 375px, and scope containment.
+
+## Stage Report: ideation (cycle 2)
+
+- DONE: Proposed approach names concrete HTML/CSS placement option(s) for 'Hsiao-wei Chiu' relative to the existing 瞿筱葳 / Ipa Chiu treatment in src/_includes/hero.njk — at least one fully sketched option with markup, not 'add the name somewhere'
+  Option A markup updated to all-caps surname per captain feedback ("我要 Ipa CHIU 和 Hsiao-wei CHIU 都有"): `(Hsiao-wei CHIU)` and `Ipa CHIU`. CSS unchanged. Selected approach markup at "Proposed final markup" reflects the same.
+- DONE: AC items name end-state properties at specific named viewports (375px / 768px / 1280px) with reproducible Verified by: clauses, not imperative verbs
+  AC #1, #2, #3, #6 substring assertions retargeted to `Hsiao-wei CHIU` / `Ipa CHIU`. New AC #8 added: existing English nickname span must read `Ipa CHIU` not `Ipa Chiu`. Viewport-anchored ACs (#4 1280px, #5 768px, #6 375px) unchanged in structure.
+- DONE: Scope stays in src/_includes/hero.njk — does not drift into base.njk metadata (already correct) or the broader page layout
+  Out-of-scope and AC #7 unchanged. Casing rationale paragraph explicitly notes the all-caps surname is hero-only and that `base.njk` correctly keeps title-case `Chiu` for Schema.org / og: metadata, out of scope.
+
+### Summary
+
+Revised per captain feedback: the all-caps `CHIU` surname is the captain's deliberate stylization and applies to both the new romanization (`Hsiao-wei CHIU`) and the existing English nickname (changed from `Ipa Chiu` to `Ipa CHIU`). The earlier "Notion artifact" rationale is reversed in the Selected approach section, with an explicit note that hero casing intentionally diverges from on-page conventions and from `base.njk` metadata. New AC #8 covers the pre-existing nickname span restyle so the scope expansion is captured in the acceptance contract, not just the addition of the new span.
