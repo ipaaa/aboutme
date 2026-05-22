@@ -127,7 +127,9 @@ Three concrete placements were sketched against the current 7-line `hero.njk`. T
 
 Option A is selected. It restores the legacy `瞿筱葳 (Hsiao-wei CHIU)` reading exactly (a Chinese name with its romanization in parentheses), keeps the h1 as the single hero element (no new block-level line between h1 and tagline), and uses typographic subordination (`0.75em`, opacity 0.75) so the existing two-name silhouette is preserved. The parenthetical sits inside the h1 so screen readers and copy-paste pick up "瞿筱葳 (Hsiao-wei CHIU) Ipa CHIU" as one heading. `lang="zh-Hant-Latn"` correctly tags the romanization as the Latin-script form of the Traditional Chinese name.
 
-**Surname casing: `CHIU` (all caps) for both English-side names.** Per captain feedback ("我要 Ipa CHIU 和 Hsiao-wei CHIU 都有"), the all-caps surname is the captain's deliberate stylization, not a Notion export artifact to normalize away. This scope expansion changes both the new romanization parenthetical (`Hsiao-wei CHIU`) AND the existing English nickname span (which was previously `Ipa Chiu` and becomes `Ipa CHIU`). This intentionally diverges from the title-case `Chiu` used in metadata (`base.njk` keeps title-case `Chiu` per Schema.org / og: conventions and stays out of scope) and elsewhere on the site — the hero is the only place the all-caps surname stylization applies. Implementers: do not "fix" `CHIU` to `Chiu` in the hero to match other on-page references.
+**Surname casing: `CHIU` (all caps) for both English-side names.** Per captain feedback ("我要 Ipa CHIU 和 Hsiao-wei CHIU 都有" / "CHIU 是為了要讓非中文人知道那是 last name"), the all-caps surname is a deliberate cross-cultural disambiguator, not a Notion export artifact to normalize away. It signals to non-Chinese readers that `Chiu` is the family name, distinct from the given names (`Ipa`, `Hsiao-wei`) and from the Traditional Chinese surname-first form `瞿筱葳` where `瞿` is the surname. The hero mixes Chinese name order (surname-first) with English name order (surname-last) within a single heading, so without the all-caps marker a non-Chinese reader has no reliable way to tell which token is the family name. All-caps surname is the standard international convention for this disambiguation in academic papers, business cards, and ICAO/IATA travel documents.
+
+This scope expansion changes both the new romanization parenthetical (`Hsiao-wei CHIU`) AND the existing English nickname span (which was previously `Ipa Chiu` and becomes `Ipa CHIU`). The all-caps treatment applies only to the visible hero h1; metadata in `base.njk` (Schema.org `familyName`, og:profile, JSON-LD) keeps canonical title-case `Chiu` per those specifications and is out of scope. Implementers and future polish passes: do not "fix" `CHIU` to `Chiu` in the hero to match other on-page references — the casing inconsistency between the hero and the rest of the site is intentional and load-bearing for cross-cultural readability.
 
 ### Proposed final markup
 
@@ -227,3 +229,16 @@ Sketched three placement options for restoring "Hsiao-wei Chiu" to the hero and 
 ### Summary
 
 Revised per captain feedback: the all-caps `CHIU` surname is the captain's deliberate stylization and applies to both the new romanization (`Hsiao-wei CHIU`) and the existing English nickname (changed from `Ipa Chiu` to `Ipa CHIU`). The earlier "Notion artifact" rationale is reversed in the Selected approach section, with an explicit note that hero casing intentionally diverges from on-page conventions and from `base.njk` metadata. New AC #8 covers the pre-existing nickname span restyle so the scope expansion is captured in the acceptance contract, not just the addition of the new span.
+
+## Stage Report: ideation (cycle 3)
+
+- DONE: Proposed approach names concrete HTML/CSS placement option(s) for 'Hsiao-wei Chiu' relative to the existing 瞿筱葳 / Ipa Chiu treatment in src/_includes/hero.njk — at least one fully sketched option with markup, not 'add the name somewhere'
+  Markup unchanged from cycle 2; only the casing rationale paragraph in "Selected approach — Option A" was rewritten.
+- DONE: AC items name end-state properties at specific named viewports (375px / 768px / 1280px) with reproducible Verified by: clauses, not imperative verbs
+  ACs unchanged from cycle 2; viewport-anchored end-state phrasing preserved.
+- DONE: Scope stays in src/_includes/hero.njk — does not drift into base.njk metadata (already correct) or the broader page layout
+  Rationale paragraph now explicitly re-affirms `base.njk` metadata keeps title-case `Chiu` per Schema.org / og: / JSON-LD specs and is out of scope.
+
+### Summary
+
+Folded captain's follow-up rationale ("CHIU 是為了要讓非中文人知道那是 last name") into the casing paragraph. The all-caps surname is now framed as a cross-cultural disambiguator for the mixed surname-first (`瞿筱葳`) / surname-last (`Ipa CHIU`, `Hsiao-wei CHIU`) heading, citing the standard academic / business-card / ICAO convention. The "do not fix back to Chiu" guardrail is explicitly called load-bearing for cross-cultural readability so a future polish pass does not silently undo it.
