@@ -242,3 +242,16 @@ Revised per captain feedback: the all-caps `CHIU` surname is the captain's delib
 ### Summary
 
 Folded captain's follow-up rationale ("CHIU 是為了要讓非中文人知道那是 last name") into the casing paragraph. The all-caps surname is now framed as a cross-cultural disambiguator for the mixed surname-first (`瞿筱葳`) / surname-last (`Ipa CHIU`, `Hsiao-wei CHIU`) heading, citing the standard academic / business-card / ICAO convention. The "do not fix back to Chiu" guardrail is explicitly called load-bearing for cross-cultural readability so a future polish pass does not silently undo it.
+
+## Stage Report: implementation
+
+- DONE: Final h1 markup matches the ideation's 'Proposed final markup' verbatim — three spans in order: 瞿筱葳 (lang=zh-Hant), (Hsiao-wei CHIU) (class=hero-romanization, lang=zh-Hant-Latn), Ipa CHIU (lang=en). No creative reinterpretation — captain spent 3 cycles dialing in the exact form, including the all-caps CHIU surname disambiguator
+  src/_includes/hero.njk now contains the three spans verbatim per "Proposed final markup"; verified in _site/index.html lines 67–69 after build.
+- DONE: CSS additions (.hero-romanization { font-weight, font-size, opacity, margin-inline-start }) land inside or directly adjacent to the existing '#19 Direction A — inline hero' block in src/styles.css — not at file end, not in a new section
+  Added `.hero-romanization` rule immediately after `.hero-tagline` within the `#19 Direction A — inline hero` block (src/styles.css around lines 296–301).
+- DONE: Build succeeds (npm run build) and the rendered output in _site/index.html reflects the three spans in the correct order with the lang and class attributes intact
+  `npm run build` completed: "Wrote 2 files in 0.16 seconds"; grep of _site/index.html confirms the three spans with correct lang/class attributes in order.
+
+### Summary
+
+Restored "Hsiao-wei Chiu" to the visible hero h1 via Option A: a `(Hsiao-wei CHIU)` parenthetical span tagged `lang="zh-Hant-Latn"` and `class="hero-romanization"` between 瞿筱葳 and the English nickname, and updated the existing nickname span from `Ipa Chiu` to `Ipa CHIU` per the captain's cross-cultural surname disambiguator rationale. Added the `.hero-romanization` rule inside the `#19 Direction A — inline hero` CSS block. Eleventy build regenerated `_site/index.html` cleanly with all three spans, attributes, and order intact.
