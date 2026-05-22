@@ -1,9 +1,9 @@
 ---
 id: 597sj7feqc04ttjx6kbzcn1m
 title: Restore "Hsiao-wei Chiu" to the visible hero title
-status: backlog
+status: ideation
 source: captain feedback — regression from #19 hero redesign
-started:
+started: 2026-05-22T18:47:13Z
 completed:
 verdict:
 score:
